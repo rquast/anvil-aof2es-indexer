@@ -1,0 +1,16 @@
+---
+layout: none
+---
+[
+    {% for page in site.pages %}
+    {% if page.tag != null %}
+        {
+            "modified": "{{ page.last_modified_at }}",
+            "title": "{{ page.title }}",
+            "url": "{{ site.url }}{{ page.url }}",
+            "path": "{{ page.url }}",
+            "content": "{{ page.content | strip_html | strip_newlines | escape }}"
+        }{% if forloop.last != true %},{% endif %}{% endif %}
+    {% endfor %}
+
+]
