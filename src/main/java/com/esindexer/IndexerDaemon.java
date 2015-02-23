@@ -12,24 +12,28 @@ public class IndexerDaemon implements Daemon {
 	
 	private Main main;
 
-	public void init(DaemonContext context) throws DaemonInitException,
+	@Override
+  public void init(DaemonContext context) throws DaemonInitException,
 			Exception {
 		Main.init(context);
 	}
 
-	public void start() throws Exception {
+	@Override
+  public void start() throws Exception {
 		if ( this.main == null ) {
 			this.main = new Main(new String[]{});
 		}
 	}
 
-	public void stop() throws Exception {
+	@Override
+  public void stop() throws Exception {
 		if ( this.main == null ) {
 			this.main.stop();
 		}
 	}
 
-	public void destroy() {
+	@Override
+  public void destroy() {
 		if ( this.main == null ) {
 			this.main.destroy();
 		}

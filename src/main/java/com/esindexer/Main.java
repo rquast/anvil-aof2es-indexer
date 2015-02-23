@@ -33,17 +33,30 @@ public class Main {
 	}
 
 	private IPreferences preferences;
-	
-	
 
 	public Main(String[] args) {
-		loadPreferences();
-		initConsoleLog4J();
-		LOG.info("Starting ES Indexer Daemon");
 		if ( args == null ) {
 			args = new String[]{};
-		}
+		}		
+		initConsoleLog4J();
+		LOG.info("Starting ES Indexer Daemon");
+		loadPreferences();
 		loadConfiguration(args);
+		runWatchers();
+	}
+
+	private void runWatchers() {
+		ApplicationPreferences ap = this.preferences.getApplicationPreferences();
+		ArrayList<ProcessedIndex> indexes = ap.getProcessedIndexes();
+		for (ProcessedIndex index : indexes) {
+			try {
+				processFile(index);
+			} catch (IOException e) {
+				LOG.error(e, e);
+			} catch (InterruptedException e) {
+				LOG.info(e, e);
+			}
+		}
 	}
 
 	private void loadPreferences() {
@@ -111,16 +124,6 @@ public class Main {
 			System.exit(0);
 		}
 
-		for (ProcessedIndex index : indexes) {
-			try {
-				processFile(index);
-			} catch (IOException e) {
-				LOG.error(e, e);
-			} catch (InterruptedException e) {
-				LOG.info(e, e);
-			}
-		}
-		
 	}
 
 	private void processFile(ProcessedIndex index) throws IOException, InterruptedException {
@@ -147,14 +150,14 @@ public class Main {
 		PatternLayout layout = new PatternLayout(
 				"%d{dd MMM yyyy HH:mm:ss,SSS} [%t] %-5p %c %x - %m%n");
 		try {
-			String filename = this.preferences.getPreferencesDir().getPath() + File.separator
+			String filename = PreferencesImpl.getPreferencesDir().getPath() + File.separator
 					+ "indexer.log";
 			DailyRollingFileAppender rollingAppender = new DailyRollingFileAppender(
 					layout, filename, "'.'yyyy-MM-dd-HH");
 			Logger.getRootLogger().addAppender(rollingAppender);
 			Logger.getRootLogger().setLevel(Level.INFO);
 		} catch (IOException e) {
-			LOG.warn(e.getLocalizedMessage(), e);
+			LOG.error(e.getLocalizedMessage(), e);
 		}
 	}
 
@@ -163,7 +166,6 @@ public class Main {
 
 	public void stop() {
 		LOG.info("Stopping ElasticSearch Indexer Daemon");
-
 	}
 
 	public void destroy() {

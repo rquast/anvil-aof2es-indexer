@@ -11,7 +11,5 @@ public interface IPreferences extends BasePreferences {
   ApplicationPreferences getApplicationPreferences();
 
   File getTempDirectory();
-  
-  File getPreferencesDir();
 
 }

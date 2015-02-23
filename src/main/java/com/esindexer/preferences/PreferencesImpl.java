@@ -30,32 +30,42 @@ public class PreferencesImpl implements IPreferences {
 
   private static final String preferencesFileName = "preferences.xml";
 
+  @Override
   public final void cleanUp() {
     tmpDir.delete();
   }
 
+  @Override
   public final ApplicationPreferences getApplicationPreferences() {
     return applicationPreferences;
   }
 
-  private File getPreferencesFile() throws IOException {
-    preferencesDir = new File(preferencesPath);
+  private static File getPreferencesFile() throws IOException {
+    File preferencesDir = new File(preferencesPath);
     if (!(preferencesDir.exists())) {
       if (!(preferencesDir.mkdirs()) || !(preferencesDir.canWrite())) {
         throw new IOException("Could not create preferences directories.");
       }
     }
-    return new File(preferencesDir.getAbsolutePath() + File.separator + preferencesFileName);
+    return new File(getPreferencesDir().getPath() + File.separator + preferencesFileName);
   }
   
-	public File getPreferencesDir() {
-		return preferencesDir;
+	public static File getPreferencesDir() throws IOException {
+	    File preferencesDir = new File(preferencesPath);
+	    if (!(preferencesDir.exists())) {
+	      if (!(preferencesDir.mkdirs()) || !(preferencesDir.canWrite())) {
+	        throw new IOException("Could not create preferences directories.");
+	      }
+	    }
+	    return preferencesDir;
 	}
 	
-	public final File getTempDirectory() {
+	@Override
+  public final File getTempDirectory() {
 		return tmpDir;
 	}
 
+  @Override
   public final synchronized void load() throws IOException, ClassNotFoundException {
 
     tmpDir.deleteOnExit();
@@ -85,6 +95,7 @@ public class PreferencesImpl implements IPreferences {
 
   }
 
+  @Override
   public final synchronized void save() throws IOException {
     synchronized (PreferencesImpl.class) {
       File preferencesFile = getPreferencesFile();
