@@ -1,29 +1,24 @@
 package com.esindexer;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import com.esindexer.preferences.IPreferences;
 import com.esindexer.preferences.PreferencesImpl;
 import com.esindexer.xstream.model.ApplicationPreferences;
+import com.esindexer.xstream.model.ProcessedIndex;
+
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 /**
  * @author Roland Quast (roland@formreturn.com)
@@ -38,11 +33,16 @@ public class Main {
 	}
 
 	private IPreferences preferences;
+	
+	
 
 	public Main(String[] args) {
 		loadPreferences();
 		initConsoleLog4J();
 		LOG.info("Starting ES Indexer Daemon");
+		if ( args == null ) {
+			args = new String[]{};
+		}
 		loadConfiguration(args);
 	}
 
@@ -61,12 +61,21 @@ public class Main {
 
 	private void loadConfiguration(String[] args) {
 		ApplicationPreferences ap = this.preferences.getApplicationPreferences();
-		ArrayList<String> processPaths = ap.getProcessPaths();
+		ArrayList<ProcessedIndex> indexes = ap.getProcessedIndexes();
 		if ( args.length >= 1 ) {
 			File processPath = new File(args[0]);
 			if ( processPath.exists() && processPath.isFile() && processPath.canRead() ) {
-				if ( !(processPaths.contains(processPath)) ) {
-					processPaths.add(processPath.getPath());
+				boolean found = false;
+				for ( ProcessedIndex index: indexes ) {
+					if ( index.getPath().equals(processPath.getPath()) ) {
+						found = true;
+						break;
+					}
+				}
+				if ( !found ) {
+					ProcessedIndex index = new ProcessedIndex();
+					index.setPath(processPath.getPath());
+					indexes.add(index);
 					try {
 						this.preferences.save();
 					} catch (IOException e) {
@@ -78,45 +87,59 @@ public class Main {
 				System.exit(0);
 			}
 		}
-		for ( String processPath: processPaths ) {
-			try {
-				processFile(processPath);
-			} catch (FileNotFoundException e) {
-				LOG.fatal(e, e);
-			} catch (IOException e) {
-				LOG.fatal(e, e);
-			} catch (ParseException e) {
-				LOG.fatal(e, e);
-			} catch (java.text.ParseException e) {
-				LOG.fatal(e, e);
+		
+		boolean found = false;
+		
+		if (args.length >= 2) {
+			for (String node : ap.getNodes()) {
+				if (node.equalsIgnoreCase(args[1].trim())) {
+					found = true;
+				}
+			}
+			if ( !found ) {
+				ap.getNodes().add(args[1].trim());
+				try {
+					this.preferences.save();
+				} catch (IOException e) {
+					LOG.error(e, e);
+				}
 			}
 		}
-	}
-
-	private void processFile(String path) throws FileNotFoundException,
-			IOException, ParseException, java.text.ParseException {
-
-		JSONParser parser = new JSONParser();
-
-		Object obj = parser.parse(new FileReader(path));
-
-		JSONArray pageList = (JSONArray) obj;
-
-		for (Object pageObj : pageList.toArray()) {
-			JSONObject pageJObj = (JSONObject) pageObj;
-			String modifiedStr = (String) pageJObj.get("modified");
-			
-			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.ENGLISH);
-			format.setTimeZone(TimeZone.getTimeZone("UTC"));
-			Date date = format.parse(modifiedStr);
-			System.out.println(date);
-			
-			System.out.println(pageJObj.get("title"));
-			System.out.println(pageJObj.get("path"));
-			System.out.println(pageJObj.get("url"));
-			// System.out.println(pageJObj.get("content"));
+		
+		if ( ap.getNodes().size() <= 0 ) {
+			LOG.fatal("No server nodes to connect to.");
+			System.exit(0);
 		}
 
+		for (ProcessedIndex index : indexes) {
+			try {
+				processFile(index);
+			} catch (IOException e) {
+				LOG.error(e, e);
+			} catch (InterruptedException e) {
+				LOG.info(e, e);
+			}
+		}
+		
+	}
+
+	private void processFile(ProcessedIndex index) throws IOException, InterruptedException {
+		
+		String parentPath = new File(index.getPath()).getParent();
+		System.out.println(parentPath);
+		Path toWatch = Paths.get(parentPath);
+		
+        if(toWatch == null) {
+            throw new UnsupportedOperationException("Directory not found");
+        }
+        WatchService myWatcher = toWatch.getFileSystem().newWatchService();
+        FileWatcher fileWatcher = new FileWatcher(myWatcher);
+        fileWatcher.setProcessedIndex(index);
+        fileWatcher.setPreferences(preferences);
+        Thread th = new Thread(fileWatcher, "FileWatcher");
+        th.start();
+        toWatch.register(myWatcher, ENTRY_MODIFY);
+        th.join();
 	}
 
 	public void initConsoleLog4J() {
@@ -124,8 +147,8 @@ public class Main {
 		PatternLayout layout = new PatternLayout(
 				"%d{dd MMM yyyy HH:mm:ss,SSS} [%t] %-5p %c %x - %m%n");
 		try {
-			String filename = this.preferences.getPreferencesDir().getPath()
-					+ "es_indexer.log";
+			String filename = this.preferences.getPreferencesDir().getPath() + File.separator
+					+ "indexer.log";
 			DailyRollingFileAppender rollingAppender = new DailyRollingFileAppender(
 					layout, filename, "'.'yyyy-MM-dd-HH");
 			Logger.getRootLogger().addAppender(rollingAppender);

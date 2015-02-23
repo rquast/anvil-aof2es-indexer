@@ -1,6 +1,8 @@
 package com.esindexer.xstream;
 
 import com.esindexer.xstream.model.ApplicationPreferences;
+import com.esindexer.xstream.model.ProcessedIndex;
+import com.esindexer.xstream.model.ProcessedPage;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.mapper.MapperWrapper;
@@ -35,6 +37,8 @@ public final class XStreamUtility {
 
   private static void processAnnotations(XStream xstream) {
     xstream.processAnnotations(ApplicationPreferences.class);
+    xstream.processAnnotations(ProcessedIndex.class);
+    xstream.processAnnotations(ProcessedPage.class);
   }
 
   private XStreamUtility() {

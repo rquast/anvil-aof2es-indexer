@@ -7,17 +7,30 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("applicationPreferences")
 public class ApplicationPreferences {
 
-	ArrayList<String> processPaths;
+	ArrayList<ProcessedIndex> processedIndexes;
+
+	ArrayList<String> nodes;
 	
-	public ArrayList<String> getProcessPaths() {
-		if ( processPaths == null ) {
-			processPaths = new ArrayList<String>();
+	public ArrayList<ProcessedIndex> getProcessedIndexes() {
+		if ( processedIndexes == null ) {
+			processedIndexes = new ArrayList<ProcessedIndex>();
 		}
-		return processPaths;
+		return processedIndexes;
 	}
 
-	public void setProcessPaths(ArrayList<String> processPaths) {
-		this.processPaths = processPaths;
+	public void setProcessedIndexes(ArrayList<ProcessedIndex> processedIndexes) {
+		this.processedIndexes = processedIndexes;
+	}
+
+	public ArrayList<String> getNodes() {
+		if ( nodes == null ) {
+			nodes = new ArrayList<String>();
+		}
+		return nodes;
+	}
+
+	public void setNodes(ArrayList<String> nodes) {
+		this.nodes = nodes;
 	}
 
 }
