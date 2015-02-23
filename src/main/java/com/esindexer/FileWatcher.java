@@ -140,11 +140,28 @@ class FileWatcher implements Runnable {
 		obj.put("title", processedPage.getTitle());
 		obj.put("content", processedPage.getContent());
 		obj.put("modified", processedPage.getModified());
-		String json = obj.toJSONString();
+		String json = null;
+		try {
+			json = obj.toJSONString();
+		} catch ( Exception ex ) {
+			LOG.error(ex, ex);
+		}
+		
+		if ( json == null ) {
+			return false;
+		}
+		
+		LOG.info(json);
+		
+		try {
 		IndexResponse response = client.prepareIndex("helpindex", "page")
 				.setSource(json)
 				.execute()
 				.actionGet();
+		} catch ( Exception ex ) {
+			LOG.error(ex, ex);
+		}
+		
 		return true; // TODO: return false if elasticsearch didn't like doing and update.
 	}
 
