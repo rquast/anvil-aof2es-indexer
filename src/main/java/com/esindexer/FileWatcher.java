@@ -139,7 +139,7 @@ class FileWatcher implements Runnable {
 		obj.put("url", processedPage.getUrl());
 		obj.put("title", processedPage.getTitle());
 		obj.put("content", processedPage.getContent());
-		obj.put("modified", processedPage.getModified());
+		obj.put("modified", "\"" + processedPage.getModified() + "\"");
 		String json = null;
 		try {
 			json = obj.toJSONString();
