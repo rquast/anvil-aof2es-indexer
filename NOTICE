@@ -1,0 +1,45 @@
+Copyright 2015 Roland Quast and Contributors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+This project includes:
+  ANTLR 3 Runtime under BSD licence
+  Apache Log4j under The Apache Software License, Version 2.0
+  ASM Commons under BSD
+  ASM Core under BSD
+  Commons Daemon under The Apache Software License, Version 2.0
+  elasticsearch under The Apache Software License, Version 2.0
+  ElasticSearch Indexer under Apache 2.0
+  Guava: Google Core Libraries for Java under The Apache Software License, Version 2.0
+  Hamcrest Core under BSD style
+  JSON.simple under The Apache Software License, Version 2.0
+  JUnit under Common Public License Version 1.0
+  Lucene Common Analyzers under Apache 2
+  Lucene Core under Apache 2
+  Lucene Grouping under Apache 2
+  Lucene Highlighter under Apache 2
+  Lucene Join under Apache 2
+  Lucene Memory under Apache 2
+  Lucene Miscellaneous under Apache 2
+  Lucene Queries under Apache 2
+  Lucene QueryParsers under Apache 2
+  Lucene Sandbox under Apache 2
+  Lucene Spatial under Apache 2
+  Lucene Suggest under Apache 2
+  MXP1: Xml Pull Parser 3rd Edition (XPP3) under Indiana University Extreme! Lab Software License, vesion 1.1.1 or Public Domain
+  Spatial4J under The Apache Software License, Version 2.0
+  XML Pull Parsing API under Public Domain
+  XStream Core under BSD style
+
