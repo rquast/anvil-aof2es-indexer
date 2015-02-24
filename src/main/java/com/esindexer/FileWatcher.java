@@ -87,7 +87,7 @@ class FileWatcher implements Runnable {
 
 			try {
 				FileReader reader = new FileReader(index.getPath());
-				obj = parser.parse(new FileReader(reader.toString())).getAsJsonObject();
+				obj = parser.parse(reader.toString()).getAsJsonObject();
 				reader.close();
 			} catch (Exception ex) {
 				LOG.error(ex, ex);
