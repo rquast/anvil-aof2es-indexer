@@ -1,5 +1,6 @@
 package com.esindexer.xstream.model;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -20,6 +21,12 @@ public class ProcessedPage {
 	private String content;
 	
 	private Date modified;
+	
+	private String type;
+	
+	private ArrayList<String> categories;
+	
+	private ArrayList<String> tags;
 
 	public String getUrl() {
 		return url;
@@ -27,6 +34,14 @@ public class ProcessedPage {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public Date getModified() {
@@ -59,6 +74,28 @@ public class ProcessedPage {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public ArrayList<String> getCategories() {
+		if ( categories == null ) {
+			categories = new ArrayList<String>();
+		}
+		return categories;
+	}
+
+	public void setCategories(ArrayList<String> categories) {
+		this.categories = categories;
+	}
+
+	public ArrayList<String> getTags() {
+		if ( tags == null ) {
+			tags = new ArrayList<String>();
+		}
+		return tags;
+	}
+
+	public void setTags(ArrayList<String> tags) {
+		this.tags = tags;
 	}
 	
 }

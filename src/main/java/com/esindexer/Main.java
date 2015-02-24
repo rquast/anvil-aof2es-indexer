@@ -1,17 +1,23 @@
 package com.esindexer;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.esindexer.preferences.IPreferences;
 import com.esindexer.preferences.PreferencesImpl;
@@ -50,13 +56,41 @@ public class Main {
 		ArrayList<ProcessedIndex> indexes = ap.getProcessedIndexes();
 		for (ProcessedIndex index : indexes) {
 			try {
-				processFile(index);
+				processFile(index, getConfigJson(index));
 			} catch (IOException e) {
 				LOG.error(e, e);
 			} catch (InterruptedException e) {
 				LOG.info(e, e);
+			} catch (ParseException e) {
+				LOG.error(e, e);
 			}
 		}
+	}
+
+	private ConfigJson getConfigJson(ProcessedIndex index) throws ParseException {
+		
+		ConfigJson configJson = new ConfigJson();
+		
+		File basePath = (new File(index.getPath())).getParentFile();
+		String configJsonPath = basePath.getPath() + File.separator + "esindexer_config.json";
+		
+		JSONParser parser = new JSONParser();
+
+		Object obj = parser.parse(configJsonPath);
+
+		JSONObject confObj = (JSONObject) obj;
+
+		configJson.setGenerator((String) confObj.get("generator"));
+		configJson.setIndex((String) confObj.get("index"));
+		
+		JSONArray nodesArr = (JSONArray) confObj.get("nodes");
+		configJson.setNodes(new ArrayList(Arrays.asList(nodesArr.toArray())));
+		
+		
+		
+		
+		return configJson;
+
 	}
 
 	private void loadPreferences() {
@@ -100,33 +134,9 @@ public class Main {
 				System.exit(0);
 			}
 		}
-		
-		boolean found = false;
-		
-		if (args.length >= 2) {
-			for (String node : ap.getNodes()) {
-				if (node.equalsIgnoreCase(args[1].trim())) {
-					found = true;
-				}
-			}
-			if ( !found ) {
-				ap.getNodes().add(args[1].trim());
-				try {
-					this.preferences.save();
-				} catch (IOException e) {
-					LOG.error(e, e);
-				}
-			}
-		}
-		
-		if ( ap.getNodes().size() <= 0 ) {
-			LOG.fatal("No server nodes to connect to.");
-			System.exit(0);
-		}
-
 	}
 
-	private void processFile(ProcessedIndex index) throws IOException, InterruptedException {
+	private void processFile(ProcessedIndex index, ConfigJson configJson) throws IOException, InterruptedException {
 		
 		String parentPath = new File(index.getPath()).getParent();
 		System.out.println(parentPath);
@@ -139,6 +149,7 @@ public class Main {
         FileWatcher fileWatcher = new FileWatcher(myWatcher);
         fileWatcher.setProcessedIndex(index);
         fileWatcher.setPreferences(preferences);
+        fileWatcher.setConfigJson(configJson);
         Thread th = new Thread(fileWatcher, "FileWatcher");
         th.start();
         toWatch.register(myWatcher, ENTRY_MODIFY);

@@ -1,0 +1,22 @@
+{
+  "generator" : "jekyll",
+  "nodes" : [ "my.elasticsearch.server.com" ],
+  "index" : "help",
+  "types" : [
+    {
+      "title" : "Help Pages",
+      "description" : "Help pages from my help website.",
+      "type" : "page"
+    },
+    {
+      "title" : "Frequently Asked Questions",
+      "description" : "Questions most often asked by application users.",
+      "type" : "faq"
+    },
+    {
+      "title" : "Application Help",
+      "description" : "Help pages which are linked to from the help icon in application.",
+      "type" : "app"
+    }
+  ]
+}

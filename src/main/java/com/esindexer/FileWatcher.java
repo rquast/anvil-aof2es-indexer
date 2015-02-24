@@ -9,6 +9,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -38,6 +39,8 @@ class FileWatcher implements Runnable {
     private WatchService myWatcher;
 	private ProcessedIndex index;
 	private IPreferences preferences;
+
+	private ConfigJson configJson;
     public FileWatcher(WatchService myWatcher) {
         this.myWatcher = myWatcher;
     }
@@ -73,12 +76,11 @@ class FileWatcher implements Runnable {
         }
     }
     
-	// TODO: run this as a file watcher thread.
 	private void processFile() throws FileNotFoundException,
 			IOException, ParseException, java.text.ParseException {
 
 		TransportClient client = new TransportClient();
-		for ( String node: preferences.getApplicationPreferences().getNodes() ) {
+		for ( String node: this.configJson.getNodes() ) {
 			client.addTransportAddress(new InetSocketTransportAddress(node, 9300));
 		}
 		
@@ -90,11 +92,14 @@ class FileWatcher implements Runnable {
 
 		for (Object pageObj : pageList.toArray()) {
 			JSONObject pageJObj = (JSONObject) pageObj;
-			String modifiedStr = (String) pageJObj.get("modified");
-			String url = (String) pageJObj.get("url");
-			String title = (String) pageJObj.get("title");
+			String modifiedStr = ((String) pageJObj.get("modified")).trim();
+			String url = ((String) pageJObj.get("url")).trim();
+			String title = ((String) pageJObj.get("title")).trim();
 			String content = (String) pageJObj.get("content");
-			String path = (String) pageJObj.get("path");
+			String path = ((String) pageJObj.get("path")).trim();
+			String categoriesStr = (String) pageJObj.get("categories");
+			String tag = ((String) pageJObj.get("tag")).trim();
+			
 			
 			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.ENGLISH);
 			format.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -111,6 +116,10 @@ class FileWatcher implements Runnable {
 					processedPage.setTitle(title);
 					processedPage.setContent(content);
 					processedPage.setPath(path);
+					for ( String category: categoriesStr.split(",") ) {
+						processedPage.getCategories().add(category.trim());
+					}
+					processedPage.getTags().add(tag);
 					if ( updateIndex(client, processedPage) ) {
 						index.getProcessedPages().put(url, processedPage);
 						preferences.save();
@@ -123,6 +132,10 @@ class FileWatcher implements Runnable {
 				processedPage.setTitle(title);
 				processedPage.setContent(content);
 				processedPage.setPath(path);
+				for ( String category: categoriesStr.split(",") ) {
+					processedPage.getCategories().add(category.trim());
+				}
+				processedPage.getTags().add(tag);
 				if ( updateIndex(client, processedPage) ) {
 					index.getProcessedPages().put(url, processedPage);
 					preferences.save();
@@ -153,16 +166,30 @@ class FileWatcher implements Runnable {
 		
 		LOG.info(json);
 		
+		IndexResponse response = null;
+		
 		try {
-		IndexResponse response = client.prepareIndex("helpindex", "page")
+			response = client.prepareIndex(configJson.getIndex(), processedPage.getType(), processedPage.getUrl())
 				.setSource(json)
 				.execute()
 				.actionGet();
 		} catch ( Exception ex ) {
 			LOG.error(ex, ex);
+			return false;
 		}
 		
-		return true; // TODO: return false if elasticsearch didn't like doing and update.
+		if ( response != null ) {
+			if ( response.isCreated() ) {
+				LOG.info("ElasticSearch response was \"created\".");
+			} else {
+				LOG.info("ElasticSearch response was \"updated\"");
+			}
+			return true;
+		} else {
+			LOG.error("No response object created.");
+			return false;
+		}
+		
 	}
 
 	public void setProcessedIndex(ProcessedIndex index) {
@@ -171,6 +198,10 @@ class FileWatcher implements Runnable {
 
 	public void setPreferences(IPreferences preferences) {
 		this.preferences = preferences;
+	}
+
+	public void setConfigJson(ConfigJson configJson) {
+		this.configJson = configJson;
 	}
     
     

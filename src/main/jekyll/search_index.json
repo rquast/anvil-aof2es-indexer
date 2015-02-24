@@ -9,6 +9,9 @@ layout: none
             "title": "{{ page.title }}",
             "url": "{{ site.url }}{{ page.url }}",
             "path": "{{ page.url }}",
+            "categories": "{% for category in page.categories %}{{ category }}{% if forloop.last != true %},{% endif %}{% endfor %}",
+            "tag" :  "{{ page.tag }}",
+            "type" : "{{ page.layout }}",
             "content": "{{ page.content | strip_html | strip_newlines | escape }}"
         }{% if forloop.last != true %},{% endif %}{% endif %}
     {% endfor %}
