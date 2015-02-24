@@ -1,5 +1,6 @@
 package com.esindexer;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -25,6 +26,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
@@ -63,15 +65,45 @@ public class Main {
 				LOG.error(e, e);
 			} catch (InterruptedException e) {
 				LOG.info(e, e);
+			} catch (JsonSyntaxException e) {
+				LOG.error(e, e);
+			} catch (Exception e) {
+				LOG.error(e, e);
 			}
 		}
 	}
+	
+	private String readFileAsString(String filePath) throws Exception {
+		BufferedReader reader = null;
+		FileReader fileReader = null;
+		StringBuffer fileData = new StringBuffer();
+		try {
+			fileReader = new FileReader(filePath);
+			reader = new BufferedReader(fileReader);
+			char[] buf = new char[1024];
+			int numRead = 0;
+			while ((numRead = reader.read(buf)) != -1) {
+				String readData = String.valueOf(buf, 0, numRead);
+				fileData.append(readData);
+			}
+		} catch (Exception ex) {
+			throw ex;
+		} finally {
+			if (reader != null) {
+				reader.close();
+			}
+			if (fileReader != null){
+				fileReader.close();
+			}
+		}
+		return fileData.toString();
+	}
 
-	private ConfigJson getConfigJson(ProcessedIndex index) throws FileNotFoundException, IOException {
+	private ConfigJson getConfigJson(ProcessedIndex index) throws JsonSyntaxException, Exception {
 		ConfigJson configJson = new ConfigJson();
 		File basePath = (new File(index.getPath())).getParentFile();
 		String configJsonPath = basePath.getPath() + File.separator + "esindexer_config.json";
-		JsonObject object = new JsonParser().parse(new FileReader(configJsonPath)).getAsJsonObject();
+		JsonObject object = new JsonParser().parse(readFileAsString(configJsonPath)).getAsJsonObject();
 		configJson.setGenerator(object.get("generator").getAsString());
 		configJson.setIndex(object.get("index").getAsString());
 		JsonArray nodesArr = object.get("nodes").getAsJsonArray();

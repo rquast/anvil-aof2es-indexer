@@ -1,5 +1,6 @@
 package com.esindexer;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -69,6 +70,32 @@ class FileWatcher implements Runnable {
         	LOG.info(e, e);
         }
     }
+
+	private String readFileAsString(String filePath) throws Exception {
+		BufferedReader reader = null;
+		FileReader fileReader = null;
+		StringBuffer fileData = new StringBuffer();
+		try {
+			fileReader = new FileReader(filePath);
+			reader = new BufferedReader(fileReader);
+			char[] buf = new char[1024];
+			int numRead = 0;
+			while ((numRead = reader.read(buf)) != -1) {
+				String readData = String.valueOf(buf, 0, numRead);
+				fileData.append(readData);
+			}
+		} catch (Exception ex) {
+			throw ex;
+		} finally {
+			if (reader != null) {
+				reader.close();
+			}
+			if (fileReader != null){
+				fileReader.close();
+			}
+		}
+		return fileData.toString();
+	}
     
 	private void processFile() throws Exception {
 
@@ -86,9 +113,8 @@ class FileWatcher implements Runnable {
 			JsonObject obj = null;
 
 			try {
-				FileReader reader = new FileReader(index.getPath());
-				obj = parser.parse(reader.toString()).getAsJsonObject();
-				reader.close();
+				String jsonStr = readFileAsString(index.getPath());
+				obj = parser.parse(jsonStr).getAsJsonObject();
 			} catch (Exception ex) {
 				LOG.error(ex, ex);
 				throw (ex);
