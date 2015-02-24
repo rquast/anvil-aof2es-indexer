@@ -24,6 +24,7 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import com.esindexer.preferences.IPreferences;
 import com.esindexer.xstream.model.ProcessedIndex;
 import com.esindexer.xstream.model.ProcessedPage;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -110,17 +111,16 @@ class FileWatcher implements Runnable {
 			}
 
 			JsonParser parser = new JsonParser();
-			JsonObject obj = null;
+			JsonArray jsonArr = null;
 
 			try {
 				String jsonStr = readFileAsString(index.getPath());
-				obj = parser.parse(jsonStr).getAsJsonObject();
+				jsonArr = (parser.parse(jsonStr)).getAsJsonArray();
 			} catch (Exception ex) {
 				LOG.error(ex, ex);
 				throw (ex);
 			}
 
-			JsonArray jsonArr = obj.getAsJsonArray();
 			Iterator<JsonElement> jai = jsonArr.iterator();
 			
 			while (jai.hasNext()) {
@@ -193,14 +193,10 @@ class FileWatcher implements Runnable {
 	}
 
 	private boolean updateIndex(Client client, ProcessedPage processedPage) {
-		JsonObject obj = new JsonObject();
-		obj.add("url", (new JsonParser()).parse(processedPage.getUrl()).getAsJsonObject());
-		obj.add("title", (new JsonParser()).parse(processedPage.getTitle()).getAsJsonObject());
-		obj.add("content", (new JsonParser()).parse(processedPage.getContent()).getAsJsonObject());
-		obj.add("modified", (new JsonParser()).parse("\"" + processedPage.getModified() + "\"").getAsJsonObject());
+		Gson gson = new Gson();
 		String json = null;
 		try {
-			json = obj.getAsString();
+			json = gson.toJson(processedPage);
 		} catch ( Exception ex ) {
 			LOG.error(ex, ex);
 		}
