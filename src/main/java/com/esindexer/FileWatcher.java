@@ -9,7 +9,6 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -91,6 +90,7 @@ class FileWatcher implements Runnable {
 		JSONArray pageList = (JSONArray) obj;
 
 		for (Object pageObj : pageList.toArray()) {
+			
 			JSONObject pageJObj = (JSONObject) pageObj;
 			String modifiedStr = ((String) pageJObj.get("modified")).trim();
 			String url = ((String) pageJObj.get("url")).trim();
@@ -100,7 +100,6 @@ class FileWatcher implements Runnable {
 			String categoriesStr = (String) pageJObj.get("categories");
 			String tag = ((String) pageJObj.get("tag")).trim();
 			String type = ((String) pageJObj.get("type")).trim();
-			
 			
 			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.ENGLISH);
 			format.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -150,6 +149,8 @@ class FileWatcher implements Runnable {
 
 	}
 
+	// not checking types because of poorly written JSONObject code.
+	@SuppressWarnings("unchecked")
 	private boolean updateIndex(Client client, ProcessedPage processedPage) {
 		JSONObject obj = new JSONObject();
 		obj.put("url", processedPage.getUrl());

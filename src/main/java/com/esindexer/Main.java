@@ -71,25 +71,16 @@ public class Main {
 	private ConfigJson getConfigJson(ProcessedIndex index) throws ParseException, FileNotFoundException, IOException {
 		
 		ConfigJson configJson = new ConfigJson();
-		
 		File basePath = (new File(index.getPath())).getParentFile();
 		String configJsonPath = basePath.getPath() + File.separator + "esindexer_config.json";
 		
 		JSONParser parser = new JSONParser();
-
 		Object obj = parser.parse(new FileReader(configJsonPath));
-
 		JSONObject confObj = (JSONObject) obj;
-
 		configJson.setGenerator((String) confObj.get("generator"));
 		configJson.setIndex((String) confObj.get("index"));
-		
 		JSONArray nodesArr = (JSONArray) confObj.get("nodes");
 		configJson.setNodes(new ArrayList(Arrays.asList(nodesArr.toArray())));
-		
-		
-		
-		
 		return configJson;
 
 	}
