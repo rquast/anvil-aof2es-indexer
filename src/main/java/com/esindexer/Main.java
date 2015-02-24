@@ -1,6 +1,7 @@
 package com.esindexer;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -67,7 +68,7 @@ public class Main {
 		}
 	}
 
-	private ConfigJson getConfigJson(ProcessedIndex index) throws ParseException {
+	private ConfigJson getConfigJson(ProcessedIndex index) throws ParseException, FileNotFoundException, IOException {
 		
 		ConfigJson configJson = new ConfigJson();
 		
@@ -76,7 +77,7 @@ public class Main {
 		
 		JSONParser parser = new JSONParser();
 
-		Object obj = parser.parse(configJsonPath);
+		Object obj = parser.parse(new FileReader(configJsonPath));
 
 		JSONObject confObj = (JSONObject) obj;
 
