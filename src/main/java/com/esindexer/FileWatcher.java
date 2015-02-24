@@ -57,13 +57,7 @@ class FileWatcher implements Runnable {
                 	}
                 	try {
 						processFile();
-					} catch (FileNotFoundException e) {
-						LOG.error(e, e);
-					} catch (IOException e) {
-						LOG.error(e, e);
-					} catch (ParseException e) {
-						LOG.error(e, e);
-					} catch (java.text.ParseException e) {
+					} catch (Exception e) {
 						LOG.error(e, e);
 					}
                 }
@@ -75,41 +69,71 @@ class FileWatcher implements Runnable {
         }
     }
     
-	private void processFile() throws FileNotFoundException,
-			IOException, ParseException, java.text.ParseException {
+	private void processFile() throws Exception {
 
-		TransportClient client = new TransportClient();
-		for ( String node: this.configJson.getNodes() ) {
-			client.addTransportAddress(new InetSocketTransportAddress(node, 9300));
-		}
-		
-		JSONParser parser = new JSONParser();
+		TransportClient client = null;
 
-		Object obj = parser.parse(new FileReader(index.getPath()));
+		try {
 
-		JSONArray pageList = (JSONArray) obj;
+			client = new TransportClient();
+			for (String node : this.configJson.getNodes()) {
+				client.addTransportAddress(new InetSocketTransportAddress(node,
+						9300));
+			}
 
-		for (Object pageObj : pageList.toArray()) {
-			
-			JSONObject pageJObj = (JSONObject) pageObj;
-			String modifiedStr = ((String) pageJObj.get("modified")).trim();
-			String url = ((String) pageJObj.get("url")).trim();
-			String title = ((String) pageJObj.get("title")).trim();
-			String content = (String) pageJObj.get("content");
-			String path = ((String) pageJObj.get("path")).trim();
-			String categoriesStr = (String) pageJObj.get("categories");
-			String tag = ((String) pageJObj.get("tag")).trim();
-			String type = ((String) pageJObj.get("type")).trim();
-			
-			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.ENGLISH);
-			format.setTimeZone(TimeZone.getTimeZone("UTC"));
-			Date newModified = format.parse(modifiedStr);
-			
-			ProcessedPage processedPage = null;
-			if ( index.getProcessedPages().containsKey(url) ) {
-				processedPage = index.getProcessedPages().get(url);
-				Date lastModified = processedPage.getModified();
-				if ( newModified.after(lastModified) ) {
+			JSONParser parser = new JSONParser();
+			Object obj = null;
+
+			try {
+				FileReader reader = new FileReader(index.getPath());
+				obj = parser.parse(reader.toString());
+				reader.close();
+			} catch (Exception ex) {
+				LOG.error(ex, ex);
+				throw (ex);
+			}
+
+			JSONArray pageList = (JSONArray) obj;
+
+			for (Object pageObj : pageList.toArray()) {
+
+				JSONObject pageJObj = (JSONObject) pageObj;
+				String modifiedStr = ((String) pageJObj.get("modified")).trim();
+				String url = ((String) pageJObj.get("url")).trim();
+				String title = ((String) pageJObj.get("title")).trim();
+				String content = (String) pageJObj.get("content");
+				String path = ((String) pageJObj.get("path")).trim();
+				String categoriesStr = (String) pageJObj.get("categories");
+				String tag = ((String) pageJObj.get("tag")).trim();
+				String type = ((String) pageJObj.get("type")).trim();
+
+				DateFormat format = new SimpleDateFormat(
+						"yyyy-MM-dd HH:mm:ss Z", Locale.ENGLISH);
+				format.setTimeZone(TimeZone.getTimeZone("UTC"));
+				Date newModified = format.parse(modifiedStr);
+
+				ProcessedPage processedPage = null;
+				if (index.getProcessedPages().containsKey(url)) {
+					processedPage = index.getProcessedPages().get(url);
+					Date lastModified = processedPage.getModified();
+					if (newModified.after(lastModified)) {
+						processedPage = new ProcessedPage();
+						processedPage.setUrl(url);
+						processedPage.setModified(newModified);
+						processedPage.setTitle(title);
+						processedPage.setContent(content);
+						processedPage.setPath(path);
+						processedPage.setType(type);
+						for (String category : categoriesStr.split(",")) {
+							processedPage.getCategories().add(category.trim());
+						}
+						processedPage.getTags().add(tag);
+						if (updateIndex(client, processedPage)) {
+							index.getProcessedPages().put(url, processedPage);
+							preferences.save();
+						}
+					}
+				} else {
 					processedPage = new ProcessedPage();
 					processedPage.setUrl(url);
 					processedPage.setModified(newModified);
@@ -117,36 +141,26 @@ class FileWatcher implements Runnable {
 					processedPage.setContent(content);
 					processedPage.setPath(path);
 					processedPage.setType(type);
-					for ( String category: categoriesStr.split(",") ) {
+					for (String category : categoriesStr.split(",")) {
 						processedPage.getCategories().add(category.trim());
 					}
 					processedPage.getTags().add(tag);
-					if ( updateIndex(client, processedPage) ) {
+					if (updateIndex(client, processedPage)) {
 						index.getProcessedPages().put(url, processedPage);
 						preferences.save();
 					}
 				}
-			} else {
-				processedPage = new ProcessedPage();
-				processedPage.setUrl(url);
-				processedPage.setModified(newModified);
-				processedPage.setTitle(title);
-				processedPage.setContent(content);
-				processedPage.setPath(path);
-				processedPage.setType(type);
-				for ( String category: categoriesStr.split(",") ) {
-					processedPage.getCategories().add(category.trim());
-				}
-				processedPage.getTags().add(tag);
-				if ( updateIndex(client, processedPage) ) {
-					index.getProcessedPages().put(url, processedPage);
-					preferences.save();
-				}
+			}
+
+		} catch (Exception ex) {
+			LOG.error(ex, ex);
+			throw (ex);
+		} finally {
+			if (client != null) {
+				client.close();
 			}
 		}
 		
-		client.close();
-
 	}
 
 	// not checking types because of poorly written JSONObject code.
