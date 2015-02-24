@@ -52,7 +52,7 @@ class FileWatcher implements Runnable {
             while(key != null) {
                 for (WatchEvent<?> event : key.pollEvents()) {
                 	final Path changed = (Path) event.context();
-                	LOG.info("File updated: " + changed);
+                	LOG.debug("File updated: " + changed);
                 	if ( !(index.getPath().endsWith(changed.toString())) ) {
                 		continue;
                 	}
@@ -99,6 +99,7 @@ class FileWatcher implements Runnable {
 			String path = ((String) pageJObj.get("path")).trim();
 			String categoriesStr = (String) pageJObj.get("categories");
 			String tag = ((String) pageJObj.get("tag")).trim();
+			String type = ((String) pageJObj.get("type")).trim();
 			
 			
 			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.ENGLISH);
@@ -116,6 +117,7 @@ class FileWatcher implements Runnable {
 					processedPage.setTitle(title);
 					processedPage.setContent(content);
 					processedPage.setPath(path);
+					processedPage.setType(type);
 					for ( String category: categoriesStr.split(",") ) {
 						processedPage.getCategories().add(category.trim());
 					}
@@ -132,6 +134,7 @@ class FileWatcher implements Runnable {
 				processedPage.setTitle(title);
 				processedPage.setContent(content);
 				processedPage.setPath(path);
+				processedPage.setType(type);
 				for ( String category: categoriesStr.split(",") ) {
 					processedPage.getCategories().add(category.trim());
 				}
@@ -164,7 +167,7 @@ class FileWatcher implements Runnable {
 			return false;
 		}
 		
-		LOG.info(json);
+		LOG.debug(json);
 		
 		IndexResponse response = null;
 		
