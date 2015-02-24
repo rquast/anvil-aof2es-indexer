@@ -9,21 +9,22 @@ import java.nio.file.Paths;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import com.esindexer.preferences.IPreferences;
 import com.esindexer.preferences.PreferencesImpl;
 import com.esindexer.xstream.model.ApplicationPreferences;
 import com.esindexer.xstream.model.ProcessedIndex;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
@@ -62,27 +63,25 @@ public class Main {
 				LOG.error(e, e);
 			} catch (InterruptedException e) {
 				LOG.info(e, e);
-			} catch (ParseException e) {
-				LOG.error(e, e);
 			}
 		}
 	}
 
-	private ConfigJson getConfigJson(ProcessedIndex index) throws ParseException, FileNotFoundException, IOException {
-		
+	private ConfigJson getConfigJson(ProcessedIndex index) throws FileNotFoundException, IOException {
 		ConfigJson configJson = new ConfigJson();
 		File basePath = (new File(index.getPath())).getParentFile();
 		String configJsonPath = basePath.getPath() + File.separator + "esindexer_config.json";
-		
-		JSONParser parser = new JSONParser();
-		Object obj = parser.parse(new FileReader(configJsonPath));
-		JSONObject confObj = (JSONObject) obj;
-		configJson.setGenerator((String) confObj.get("generator"));
-		configJson.setIndex((String) confObj.get("index"));
-		JSONArray nodesArr = (JSONArray) confObj.get("nodes");
-		configJson.setNodes(new ArrayList(Arrays.asList(nodesArr.toArray())));
+		JsonObject object = new JsonParser().parse(new FileReader(configJsonPath)).getAsJsonObject();
+		configJson.setGenerator(object.get("generator").getAsString());
+		configJson.setIndex(object.get("index").getAsString());
+		JsonArray nodesArr = object.get("nodes").getAsJsonArray();
+		ArrayList<String> nodes = new ArrayList<String>();
+		Iterator<JsonElement> nai = nodesArr.iterator();
+		while (nai.hasNext()) {
+			nodes.add(nai.next().getAsString());
+		}
+		configJson.setNodes(nodes);
 		return configJson;
-
 	}
 
 	private void loadPreferences() {

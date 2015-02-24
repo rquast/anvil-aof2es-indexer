@@ -10,6 +10,7 @@ import java.nio.file.WatchService;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -18,14 +19,14 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import com.esindexer.preferences.IPreferences;
 import com.esindexer.xstream.model.ProcessedIndex;
 import com.esindexer.xstream.model.ProcessedPage;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * @author Roland Quast (roland@formreturn.com)
@@ -81,31 +82,33 @@ class FileWatcher implements Runnable {
 						9300));
 			}
 
-			JSONParser parser = new JSONParser();
-			Object obj = null;
+			JsonParser parser = new JsonParser();
+			JsonObject obj = null;
 
 			try {
 				FileReader reader = new FileReader(index.getPath());
-				obj = parser.parse(reader.toString());
+				obj = parser.parse(new FileReader(reader.toString())).getAsJsonObject();
 				reader.close();
 			} catch (Exception ex) {
 				LOG.error(ex, ex);
 				throw (ex);
 			}
 
-			JSONArray pageList = (JSONArray) obj;
+			JsonArray jsonArr = obj.getAsJsonArray();
+			Iterator<JsonElement> jai = jsonArr.iterator();
+			
+			while (jai.hasNext()) {
 
-			for (Object pageObj : pageList.toArray()) {
+				JsonObject pageJObj = jai.next().getAsJsonObject();
 
-				JSONObject pageJObj = (JSONObject) pageObj;
-				String modifiedStr = ((String) pageJObj.get("modified")).trim();
-				String url = ((String) pageJObj.get("url")).trim();
-				String title = ((String) pageJObj.get("title")).trim();
-				String content = (String) pageJObj.get("content");
-				String path = ((String) pageJObj.get("path")).trim();
-				String categoriesStr = (String) pageJObj.get("categories");
-				String tag = ((String) pageJObj.get("tag")).trim();
-				String type = ((String) pageJObj.get("type")).trim();
+				String modifiedStr = pageJObj.get("modified").getAsString();
+				String url = pageJObj.get("url").getAsString().trim();
+				String title = pageJObj.get("title").getAsString().trim();
+				String content = pageJObj.get("content").getAsString().trim();
+				String path = pageJObj.get("path").getAsString().trim();
+				String categoriesStr = pageJObj.get("categories").getAsString().trim();
+				String tag = pageJObj.get("tag").getAsString().trim();
+				String type = pageJObj.get("type").getAsString().trim();
 
 				DateFormat format = new SimpleDateFormat(
 						"yyyy-MM-dd HH:mm:ss Z", Locale.ENGLISH);
@@ -163,17 +166,15 @@ class FileWatcher implements Runnable {
 		
 	}
 
-	// not checking types because of poorly written JSONObject code.
-	@SuppressWarnings("unchecked")
 	private boolean updateIndex(Client client, ProcessedPage processedPage) {
-		JSONObject obj = new JSONObject();
-		obj.put("url", processedPage.getUrl());
-		obj.put("title", processedPage.getTitle());
-		obj.put("content", processedPage.getContent());
-		obj.put("modified", "\"" + processedPage.getModified() + "\"");
+		JsonObject obj = new JsonObject();
+		obj.add("url", (new JsonParser()).parse(processedPage.getUrl()).getAsJsonObject());
+		obj.add("title", (new JsonParser()).parse(processedPage.getTitle()).getAsJsonObject());
+		obj.add("content", (new JsonParser()).parse(processedPage.getContent()).getAsJsonObject());
+		obj.add("modified", (new JsonParser()).parse("\"" + processedPage.getModified() + "\"").getAsJsonObject());
 		String json = null;
 		try {
-			json = obj.toJSONString();
+			json = obj.getAsString();
 		} catch ( Exception ex ) {
 			LOG.error(ex, ex);
 		}
