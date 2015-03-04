@@ -1,19 +1,16 @@
 ---
 layout: none
 ---
-[
-    {% for page in site.pages %}
+[ {% for page in site.pages %}
     {% if page.tag != null %}
         {
             "modified": "{{ page.last_modified_at }}",
-            "title": "{{ page.title }}",
+            "type" : "{{ page.layout }}",
+            "title": "{{ page.title | strip_html | escape | newline_to_br | strip_newlines | replace: '<br />',' ' | replace: '\','\\\' | replace: '&quot;','\\"' | replace: '  ',' ' }}",
             "url": "{{ site.url }}{{ page.url }}",
             "path": "{{ page.url }}",
             "categories": "{% for category in page.categories %}{{ category }}{% if forloop.last != true %},{% endif %}{% endfor %}",
             "tag" :  "{{ page.tag }}",
-            "type" : "{{ page.layout }}",
-            "content": "{{ page.content | strip_html | strip_newlines | escape }}"
+            "content": "{{ page.raw_content | markdownify | strip_html | escape | newline_to_br | strip_newlines | replace: '<br />',' ' | replace: '\','\\\' | replace: '&quot;','\\"' | replace: '  ',' ' }}"
         }{% if forloop.last != true %},{% endif %}{% endif %}
-    {% endfor %}
-
-]
+    {% endfor %} ]
