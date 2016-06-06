@@ -1,6 +1,7 @@
 package com.esindexer;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -16,17 +17,12 @@ import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.msgpack.MessagePack;
+import org.msgpack.unpacker.Unpacker;
 
 import com.esindexer.preferences.IPreferences;
 import com.esindexer.preferences.PreferencesImpl;
 import com.esindexer.xstream.model.ApplicationPreferences;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
-
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 /**
  * @author Roland Quast (roland@formreturn.com)
@@ -76,19 +72,10 @@ public class Main {
     }
   }
 
-
-
   private void processFile(String aofFilePath) throws IOException,
       InterruptedException {
 
-      // TODO: read the AOF file here.
-      FileInputStream fis = new FileInputStream(aofFilePath);
-      AppendOnlyFileReader r = new AppendOnlyFileReader(fis);
-      
-      
-      
-      // finally
-      fis.close();
+      AppendOnlyFileReader.read(aofFilePath);
       
   }
 

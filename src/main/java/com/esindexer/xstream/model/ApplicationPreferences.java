@@ -5,7 +5,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("applicationPreferences")
 public class ApplicationPreferences {
 
-    private String aofFilePath = "";
+    private String aofFilePath = "/var/lib/redis/appendonly.aof";
 
     public String getAofFilePath() {
         return aofFilePath;
