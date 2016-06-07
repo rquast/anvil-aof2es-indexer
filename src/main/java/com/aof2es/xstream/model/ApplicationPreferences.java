@@ -1,4 +1,4 @@
-package com.esindexer.xstream.model;
+package com.aof2es.xstream.model;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 

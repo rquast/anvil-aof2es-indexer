@@ -1,8 +1,8 @@
-package com.esindexer.preferences;
+package com.aof2es.preferences;
 
 import java.io.File;
 
-import com.esindexer.xstream.model.ApplicationPreferences;
+import com.aof2es.xstream.model.ApplicationPreferences;
 
 public interface IPreferences extends BasePreferences {
 

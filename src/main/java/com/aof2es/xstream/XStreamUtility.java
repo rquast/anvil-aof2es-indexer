@@ -1,6 +1,6 @@
-package com.esindexer.xstream;
+package com.aof2es.xstream;
 
-import com.esindexer.xstream.model.ApplicationPreferences;
+import com.aof2es.xstream.model.ApplicationPreferences;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.mapper.MapperWrapper;

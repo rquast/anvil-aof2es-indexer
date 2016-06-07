@@ -1,4 +1,4 @@
-package com.esindexer.preferences;
+package com.aof2es.preferences;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,8 +10,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 
-import com.esindexer.xstream.XStreamUtility;
-import com.esindexer.xstream.model.ApplicationPreferences;
+import com.aof2es.xstream.XStreamUtility;
+import com.aof2es.xstream.model.ApplicationPreferences;
 import com.google.common.io.Files;
 import com.thoughtworks.xstream.XStream;
 
@@ -26,7 +26,7 @@ public class PreferencesImpl implements IPreferences {
   private static final File tmpDir = Files.createTempDir();
 
   private static final String preferencesPath = System.getProperty("user.home") + File.separator
-      + ".esindexer";
+      + ".aof2es";
 
   private static final String preferencesFileName = "preferences.xml";
 
@@ -99,7 +99,7 @@ public class PreferencesImpl implements IPreferences {
   public final synchronized void save() throws IOException {
     synchronized (PreferencesImpl.class) {
       File preferencesFile = getPreferencesFile();
-      String rootNodeName = "esIndexer";
+      String rootNodeName = "aof2es";
       BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(
           preferencesFile), "UTF-8"));
       out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");

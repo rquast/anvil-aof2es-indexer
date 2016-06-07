@@ -1,4 +1,4 @@
-package com.esindexer.preferences;
+package com.aof2es.preferences;
 
 import java.io.IOException;
 

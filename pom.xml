@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.esindexer</groupId>
-	<artifactId>esindexer</artifactId>
+	<groupId>com.aof2es</groupId>
+	<artifactId>aof2es</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>ElasticSearch Indexer</name>
-	<description>Reads JSON files for content then indexes by modified date.</description>
-	<url>http://github.com/rquast/esindexer</url>
-	<inceptionYear>2015</inceptionYear>
+	<name>Anvil Redis AOF to ElasticSearch Indexer</name>
+	<description>Reads Redis AOF files produced by Anvil and indexes ElasticSearch.</description>
+	<url>http://github.com/cavyio/anvil-aof2es-indexer</url>
+	<inceptionYear>2016</inceptionYear>
 
 	<properties>
 		<es.version>1.4.4</es.version>
@@ -17,9 +17,9 @@
 	</properties>
 
 	<scm>
-		<url>scm:git:https://github.com/rquast/esindexer/tree/master</url>
-		<connection>scm:git:https://github.com/rquast/esindexer.git</connection>
-		<developerConnection>scm:git:git@github.com:rquast/esindexer.git</developerConnection>
+		<url>scm:git:https://github.com/cavyio/anvil-aof2es-indexer/tree/master</url>
+		<connection>scm:git:https://github.com/cavyio/anvil-aof2es-indexer.git</connection>
+		<developerConnection>scm:git:git@github.com:cavyio/anvil-aof2es-indexer.git</developerConnection>
 	</scm>
 	
 	<licenses>
@@ -35,7 +35,7 @@
 		<developer>
 			<id>rquast</id>
 			<name>Roland Quast</name>
-			<email>roland@formreturn.com</email>
+			<email>rquast@rolandquast.com</email>
 		</developer>
 	</developers>
 
@@ -82,7 +82,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.esindexer.Main</mainClass>
+							<mainClass>com.aof2es.Main</mainClass>
 							<addClasspath>true</addClasspath>
 						</manifest>
 					</archive>
@@ -180,21 +180,6 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>18.0</version>
-		</dependency>
-		<dependency>
-		    <groupId>commons-logging</groupId>
-		    <artifactId>commons-logging</artifactId>
-		    <version>1.2</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.json</groupId>
-		    <artifactId>json</artifactId>
-		    <version>20160212</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.msgpack</groupId>
-		    <artifactId>msgpack</artifactId>
-		    <version>0.6.12</version>
 		</dependency>			
 	</dependencies>
 

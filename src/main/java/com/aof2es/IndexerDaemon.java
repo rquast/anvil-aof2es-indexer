@@ -1,4 +1,4 @@
-package com.esindexer;
+package com.aof2es;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;

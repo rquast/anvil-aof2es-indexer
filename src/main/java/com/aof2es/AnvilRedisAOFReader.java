@@ -1,4 +1,4 @@
-package com.esindexer;
+package com.aof2es;
 
 import java.io.*;
 import java.util.ArrayList;

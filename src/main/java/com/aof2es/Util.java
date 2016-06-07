@@ -1,4 +1,4 @@
-package com.esindexer;
+package com.aof2es;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

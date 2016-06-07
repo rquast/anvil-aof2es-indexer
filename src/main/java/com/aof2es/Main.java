@@ -1,4 +1,4 @@
-package com.esindexer;
+package com.aof2es;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,9 +9,9 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
-import com.esindexer.preferences.IPreferences;
-import com.esindexer.preferences.PreferencesImpl;
-import com.esindexer.xstream.model.ApplicationPreferences;
+import com.aof2es.preferences.IPreferences;
+import com.aof2es.preferences.PreferencesImpl;
+import com.aof2es.xstream.model.ApplicationPreferences;
 
 /**
  * @author Roland Quast (rquast@rolandquast.com)
@@ -34,16 +34,11 @@ public class Main implements CommandProcessor {
 	initConsoleLog4J();
 	LOG.info("Starting Anvil Redis AOF to ES Indexer Daemon");
 	loadPreferences();
-	runWatchers();
-    }
-
-    private void runWatchers() {
 	ApplicationPreferences ap = this.preferences.getApplicationPreferences();
-
 	try {
 	    processFile(ap.getAofFilePath());
 	} catch (Exception ex) {
-	    LOG.warn(ex.getMessage());
+	    LOG.error(ex);
 	}
     }
 
