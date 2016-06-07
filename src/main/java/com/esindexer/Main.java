@@ -75,7 +75,7 @@ public class Main {
   private void processFile(String aofFilePath) throws IOException,
       InterruptedException {
 
-      AppendOnlyFileReader.read(aofFilePath);
+      AnvilRedisAOFReader.read(aofFilePath);
       
   }
 

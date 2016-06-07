@@ -1,11 +1,3 @@
-/* File:    AppendOnlyFileReader.java
- * Created: Jul 17, 2010
- * Author:  Lars George
- *
- * Original code Copyright (c) 2010 larsgeorge.com
- * Modified code Copyright (c) 2016 Roland Quast
- */
-
 package com.esindexer;
 
 import java.io.*;
@@ -15,25 +7,19 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-/**
- * Implements a Redis Append-Only-File (AOF) reader generated using the
- * <code>BGREWRITEAOF</code> command sent to Redis (see
- * <a href="http://code.google.com/p/redis/wiki/BgrewriteaofCommand">command</a>
- * and
- * <a href="http://code.google.com/p/redis/wiki/AppendOnlyFileHowto">reference
- * </a> help online).
- *
- * @author Lars George
- */
-public class AppendOnlyFileReader {
+public class AnvilRedisAOFReader {
 
-    static final Log LOG = LogFactory.getLog(AppendOnlyFileReader.class);
+    static final Log LOG = LogFactory.getLog(AnvilRedisAOFReader.class);
+    
+    public static enum Command { SELECT, SET, ZADD, HSET, PEXPIREAT, DEL }
 
     private long pos = 0L;
 
     private RandomAccessFile reader;
+    
+    private ArrayList<String[]> transactionBuffer = new ArrayList<String[]>();
 
-    public AppendOnlyFileReader(RandomAccessFile reader) {
+    public AnvilRedisAOFReader(RandomAccessFile reader) {
 	this.reader = reader;
     }
 
@@ -150,6 +136,52 @@ public class AppendOnlyFileReader {
 	System.out.println(sb.toString());
 
     }
+    
+    private void processCommand(String[] args) {
+	
+	if (args[0].equalsIgnoreCase("MULTI") || this.transactionBuffer.size() > 0) {
+	    this.transactionBuffer.add(args);
+	} else if (args[0].equalsIgnoreCase("EXEC")) {
+	    for (String[] argsItem: this.transactionBuffer) {
+		processCommand(argsItem);
+	    }
+	    this.transactionBuffer.clear();
+	} else if (args[0].equalsIgnoreCase("DISCARD")) {
+	    this.transactionBuffer.clear();
+	} else {
+	    
+	    Command cmd = AnvilRedisAOFReader.Command.valueOf(args[0].toUpperCase());
+	    
+	    switch (cmd) {
+	    
+	    case SELECT:
+		break;
+		
+	    case SET:
+		// TODO
+		break;
+		
+	    case ZADD:
+		// TODO
+		break;
+		
+	    case HSET:
+		// TODO
+		break;
+		
+	    case PEXPIREAT:
+		// TODO
+		break;
+	    
+	    case DEL:
+		// TODO
+		break;
+	    
+	    }
+	    
+	}
+	
+    }
 
     public static void read(String filePath) {
 
@@ -157,7 +189,7 @@ public class AppendOnlyFileReader {
 	    File file = new File(filePath);
 
 	    RandomAccessFile raf = new RandomAccessFile(file, "r");
-	    AppendOnlyFileReader r = new AppendOnlyFileReader(raf);
+	    AnvilRedisAOFReader r = new AnvilRedisAOFReader(raf);
 	    
 	    if (file.exists() && file.canRead()) {
 		while (true) {
@@ -167,9 +199,10 @@ public class AppendOnlyFileReader {
 
 		    while ((args = r.next()) != null) {
 			printArgs(args);
+			r.processCommand(args);
 			r.setPos(raf.getFilePointer());
 		    }
-		    Thread.sleep(1000);
+		    Thread.sleep(100);
 		}
 	    }
 	    
