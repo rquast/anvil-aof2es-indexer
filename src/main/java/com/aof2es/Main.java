@@ -32,7 +32,7 @@ public class Main implements CommandProcessor {
 	    args = new String[] {};
 	}
 	initConsoleLog4J();
-	LOG.info("Starting Anvil Redis AOF to ES Indexer Daemon");
+	LOG.info("Starting AOF2ES Daemon");
 	loadPreferences();
 	ApplicationPreferences ap = this.preferences.getApplicationPreferences();
 	try {
@@ -107,7 +107,7 @@ public class Main implements CommandProcessor {
     }
 
     public void stop() {
-	LOG.info("Stopping ElasticSearch Indexer Daemon");
+	LOG.info("Stopping AOF2ES Daemon");
     }
 
     public void destroy() {
