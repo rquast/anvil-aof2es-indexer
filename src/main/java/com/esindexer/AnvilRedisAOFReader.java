@@ -42,53 +42,24 @@ public class AnvilRedisAOFReader {
 
     private byte[] readBytes() throws IOException {
 
-	int lastByte = -1, nextByte = reader.read();
+	int lastByte = -1, nextByte = -1;
 	List<Integer> buffer = new ArrayList<Integer>();
 
-	// stop at $ length
-	if (nextByte == 0x24) {
+	while ((nextByte = reader.read()) != -1) {
 
-	    do {
-
-		// /r/n line ending standard for redis AOF
-		if (lastByte == 0x0d && nextByte == 0x0a) {
-		    if (buffer.size() > 1) {
-			buffer.remove(buffer.size() - 1);
-			buffer.remove(0);
-		    }
-		    /*
-		     * long length = Long.parseLong(new
-		     * String(toByteArray(buffer), "ISO8859-1"));
-		     * 
-		     * byte[] value = new byte[(int) length]; for (int i = 0; i
-		     * < length; i++) { value[i] = (byte) in.read(); }
-		     */
-
+	    // /r/n line ending standard for redis AOF
+	    if (lastByte == 0x0d && nextByte == 0x0a) {
+		buffer.remove(buffer.size() - 1);
+		if (buffer.get(0).intValue() == 0x24) {
+		    buffer.remove(0);
 		    return readBytes();
-
-		}
-
-		buffer.add(nextByte);
-		lastByte = nextByte;
-	    } while ((nextByte = reader.read()) != -1);
-
-	} else {
-
-	    do {
-
-		// /r/n line ending standard for redis AOF
-		if (lastByte == 0x0d && nextByte == 0x0a) {
-		    if (buffer.size() > 0) {
-			buffer.remove(buffer.size() - 1);
-
-		    }
+		} else {
 		    return toByteArray(buffer);
 		}
+	    }
 
-		buffer.add(nextByte);
-		lastByte = nextByte;
-	    } while ((nextByte = reader.read()) != -1);
-
+	    buffer.add(nextByte);
+	    lastByte = nextByte;
 	}
 
 	throw new IOException("EOF reached.");
@@ -139,18 +110,20 @@ public class AnvilRedisAOFReader {
     
     private void processCommand(String[] args) {
 	
-	if (args[0].equalsIgnoreCase("MULTI") || this.transactionBuffer.size() > 0) {
+	String cmdStr = args[0].toUpperCase();
+	
+	if (cmdStr.equals("MULTI") || this.transactionBuffer.size() > 0) {
 	    this.transactionBuffer.add(args);
-	} else if (args[0].equalsIgnoreCase("EXEC")) {
+	} else if (cmdStr.equals("EXEC")) {
 	    for (String[] argsItem: this.transactionBuffer) {
 		processCommand(argsItem);
 	    }
 	    this.transactionBuffer.clear();
-	} else if (args[0].equalsIgnoreCase("DISCARD")) {
+	} else if (cmdStr.equals("DISCARD")) {
 	    this.transactionBuffer.clear();
 	} else {
 	    
-	    Command cmd = AnvilRedisAOFReader.Command.valueOf(args[0].toUpperCase());
+	    Command cmd = AnvilRedisAOFReader.Command.valueOf(cmdStr);
 	    
 	    switch (cmd) {
 	    
@@ -208,7 +181,7 @@ public class AnvilRedisAOFReader {
 	    
 	    raf.close();
 	} catch (Exception e) {
-	    e.printStackTrace();
+	    LOG.error(e.getMessage());
 	}
 
     }
