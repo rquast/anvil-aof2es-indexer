@@ -4,12 +4,11 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
 public class AnvilRedisAOFReader {
 
-    static final Log LOG = LogFactory.getLog(AnvilRedisAOFReader.class);
+    static final Logger LOG = Logger.getLogger(AnvilRedisAOFReader.class);
     
     public static enum Command { MULTI, EXEC, DISCARD, SELECT, SET, ZADD, ZREM, HSET, PEXPIREAT, DEL }
 
@@ -19,8 +18,11 @@ public class AnvilRedisAOFReader {
     
     private ArrayList<String[]> transactionBuffer = new ArrayList<String[]>();
 
-    public AnvilRedisAOFReader(RandomAccessFile reader) {
+    private CommandProcessor commandProcessor;
+
+    public AnvilRedisAOFReader(RandomAccessFile reader, CommandProcessor commandProcessor) {
 	this.reader = reader;
+	this.commandProcessor = commandProcessor;
     }
 
     public RandomAccessFile getReader() {
@@ -131,6 +133,7 @@ public class AnvilRedisAOFReader {
 	
 	switch (cmd) {
 	
+	// Do not process transactional commands.
 	case SELECT:
 	case MULTI:
 	case EXEC:	    
@@ -138,38 +141,36 @@ public class AnvilRedisAOFReader {
 	    return;
 
 	case SET:
-	    // TODO
+	    commandProcessor.processSetCommand(args);
 	    break;
 
 	case ZADD:
-	    // TODO
+	    commandProcessor.processZsetCommand(args);
 	    break;
 	    
 	case ZREM:
-	    // TODO
+	    commandProcessor.processZremCommand(args);
 	    break;
 
 	case HSET:
-	    // TODO
+	    commandProcessor.processHsetCommand(args);
 	    break;
 
 	case PEXPIREAT:
-	    // TODO
+	    commandProcessor.processPexpireatCommand(args);
 	    break;
 
 	case DEL:
-	    // TODO
+	    commandProcessor.processDelCommand(args);
 	    break;
 
 	}
 	
     }
-    
+
     private void process(String[] args) {
 	
 	String cmdStr = args[0].toUpperCase();
-
-	    System.out.println(cmdStr);
 	
 	if (cmdStr.equals("EXEC")) {
 	    for (String[] argsItem: this.transactionBuffer) {
@@ -186,7 +187,7 @@ public class AnvilRedisAOFReader {
 	
     }
 
-    public static void read(String filePath) {
+    public static void read(String filePath, CommandProcessor commandProcessor) {
 	
 	RandomAccessFile raf = null;
 
@@ -194,7 +195,7 @@ public class AnvilRedisAOFReader {
 	    
 	    File file = new File(filePath);
 	    raf = new RandomAccessFile(file, "r");
-	    AnvilRedisAOFReader r = new AnvilRedisAOFReader(raf);
+	    AnvilRedisAOFReader r = new AnvilRedisAOFReader(raf, commandProcessor);
 	    
 	    if (file.exists() && file.canRead()) {
 		while (true) {
