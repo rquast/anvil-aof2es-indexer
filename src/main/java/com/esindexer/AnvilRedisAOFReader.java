@@ -11,7 +11,7 @@ public class AnvilRedisAOFReader {
 
     static final Log LOG = LogFactory.getLog(AnvilRedisAOFReader.class);
     
-    public static enum Command { SELECT, SET, ZADD, HSET, PEXPIREAT, DEL }
+    public static enum Command { MULTI, EXEC, DISCARD, SELECT, SET, ZADD, ZREM, HSET, PEXPIREAT, DEL }
 
     private long pos = 0L;
 
@@ -29,6 +29,10 @@ public class AnvilRedisAOFReader {
 
     public long getPos() {
 	return pos;
+    }
+    
+    private void setPos(long pos) {
+	this.pos = pos;
     }
 
     private static byte[] toByteArray(List<Integer> in) {
@@ -49,17 +53,21 @@ public class AnvilRedisAOFReader {
 
 	    // /r/n line ending standard for redis AOF
 	    if (lastByte == 0x0d && nextByte == 0x0a) {
+		
 		buffer.remove(buffer.size() - 1);
+		
+		// $ (length of next line)
 		if (buffer.get(0).intValue() == 0x24) {
-		    buffer.remove(0);
 		    return readBytes();
 		} else {
 		    return toByteArray(buffer);
 		}
+		
 	    }
 
 	    buffer.add(nextByte);
 	    lastByte = nextByte;
+	    
 	}
 
 	throw new IOException("EOF reached.");
@@ -111,83 +119,107 @@ public class AnvilRedisAOFReader {
     private void processCommand(String[] args) {
 	
 	String cmdStr = args[0].toUpperCase();
+
+	Command cmd;
 	
-	if (cmdStr.equals("MULTI") || this.transactionBuffer.size() > 0) {
-	    this.transactionBuffer.add(args);
-	} else if (cmdStr.equals("EXEC")) {
+	try {
+	    cmd = AnvilRedisAOFReader.Command.valueOf(cmdStr);
+	} catch (IllegalArgumentException e) {
+	    LOG.debug("Command not found: " + cmdStr);
+	    return;
+	}
+	
+	switch (cmd) {
+	
+	case SELECT:
+	case MULTI:
+	case EXEC:	    
+	case DISCARD:
+	    return;
+
+	case SET:
+	    // TODO
+	    break;
+
+	case ZADD:
+	    // TODO
+	    break;
+	    
+	case ZREM:
+	    // TODO
+	    break;
+
+	case HSET:
+	    // TODO
+	    break;
+
+	case PEXPIREAT:
+	    // TODO
+	    break;
+
+	case DEL:
+	    // TODO
+	    break;
+
+	}
+	
+    }
+    
+    private void process(String[] args) {
+	
+	String cmdStr = args[0].toUpperCase();
+
+	    System.out.println(cmdStr);
+	
+	if (cmdStr.equals("EXEC")) {
 	    for (String[] argsItem: this.transactionBuffer) {
 		processCommand(argsItem);
 	    }
 	    this.transactionBuffer.clear();
 	} else if (cmdStr.equals("DISCARD")) {
 	    this.transactionBuffer.clear();
+	} else if (cmdStr.equals("MULTI") || this.transactionBuffer.size() > 0) {
+	    this.transactionBuffer.add(args);
 	} else {
-	    
-	    Command cmd = AnvilRedisAOFReader.Command.valueOf(cmdStr);
-	    
-	    switch (cmd) {
-	    
-	    case SELECT:
-		break;
-		
-	    case SET:
-		// TODO
-		break;
-		
-	    case ZADD:
-		// TODO
-		break;
-		
-	    case HSET:
-		// TODO
-		break;
-		
-	    case PEXPIREAT:
-		// TODO
-		break;
-	    
-	    case DEL:
-		// TODO
-		break;
-	    
-	    }
-	    
+	    processCommand(args);
 	}
 	
     }
 
     public static void read(String filePath) {
+	
+	RandomAccessFile raf = null;
 
 	try {
+	    
 	    File file = new File(filePath);
-
-	    RandomAccessFile raf = new RandomAccessFile(file, "r");
+	    raf = new RandomAccessFile(file, "r");
 	    AnvilRedisAOFReader r = new AnvilRedisAOFReader(raf);
 	    
 	    if (file.exists() && file.canRead()) {
 		while (true) {
-
 		    raf.seek(r.getPos());
 		    String[] args;
-
 		    while ((args = r.next()) != null) {
-			printArgs(args);
-			r.processCommand(args);
-			r.setPos(raf.getFilePointer());
+			r.process(args);
 		    }
+		    r.setPos(raf.getFilePointer());
 		    Thread.sleep(100);
 		}
 	    }
 	    
-	    raf.close();
 	} catch (Exception e) {
 	    LOG.error(e.getMessage());
+	} finally {
+	    if (raf != null) {
+		try {
+		    raf.close();
+		} catch (IOException e) {
+		    LOG.error(e);
+		}
+	    }
 	}
 
-    }
-
-    private void setPos(long pos) {
-	this.pos = pos;
     }
 
 }
