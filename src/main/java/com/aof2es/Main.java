@@ -32,7 +32,7 @@ public class Main {
     }
     
     public void init() {
-	initConsoleLog4J();
+	initLogging();
 	LOG.info("Starting AOF2ES Daemon");
 	loadPreferences();
 	ApplicationPreferences applicationPreferences = this.preferences.getApplicationPreferences();
@@ -42,7 +42,7 @@ public class Main {
 	    indexer.connect();
 	    Reader.read(applicationPreferences.getAofFilePath(), indexer);
 	} catch (Exception ex) {
-	    LOG.fatal(ex);
+	    LOG.fatal(ex.getLocalizedMessage(), ex);
 	    // sleep to throttle in case this daemon respawns quickly.
 	    try {
 		Thread.sleep(3000);
@@ -57,15 +57,15 @@ public class Main {
 	try {
 	    this.preferences.load();
 	} catch (ClassNotFoundException e) {
-	    LOG.fatal(e, e);
+	    LOG.fatal(e.getLocalizedMessage(), e);
 	    System.exit(0);
 	} catch (IOException e) {
-	    LOG.fatal(e, e);
+	    LOG.fatal(e.getLocalizedMessage(), e);
 	    System.exit(0);
 	}
     }
 
-    public void initConsoleLog4J() {
+    public void initLogging() {
 	PatternLayout layout = new PatternLayout("%d{dd MMM yyyy HH:mm:ss,SSS} [%t] %-5p %c %x - %m%n");
 	try {
 	    String filename = PreferencesImpl.getPreferencesDir().getPath() + File.separator + "indexer.log";

@@ -17,7 +17,9 @@ import com.thoughtworks.xstream.XStream;
 
 public class PreferencesImpl implements IPreferences {
 
-    private XStream xstream;
+    private XStream serialize;
+    
+    private XStream deserialize;
 
     private ApplicationPreferences applicationPreferences = new ApplicationPreferences();
 
@@ -25,7 +27,7 @@ public class PreferencesImpl implements IPreferences {
 
     private static final String preferencesPath = System.getProperty("user.home") + File.separator + ".aof2es";
 
-    private static final String preferencesFileName = "preferences.xml";
+    private static final String preferencesFileName = "preferences.json";
 
     @Override
     public final void cleanUp() {
@@ -66,7 +68,7 @@ public class PreferencesImpl implements IPreferences {
     public final synchronized void load() throws IOException, ClassNotFoundException {
 
 	tmpDir.deleteOnExit();
-	xstream = XStreamUtility.getXStream();
+	serialize = XStreamUtility.getSerialize();
 
 	File preferencesFile = getPreferencesFile();
 	if (!(preferencesFile.exists())) {
@@ -77,7 +79,7 @@ public class PreferencesImpl implements IPreferences {
 	FileInputStream fis = null;
 	try {
 	    fis = new FileInputStream(preferencesFile);
-	    s = xstream.createObjectInputStream(new InputStreamReader(fis, "UTF-8"));
+	    s = serialize.createObjectInputStream(new InputStreamReader(fis, "UTF-8"));
 	    applicationPreferences = ((ApplicationPreferences) s.readObject());
 	} catch (IOException ex) {
 	    throw ex;
@@ -95,13 +97,18 @@ public class PreferencesImpl implements IPreferences {
     @Override
     public final synchronized void save() throws IOException {
 	synchronized (PreferencesImpl.class) {
+	    
+	    if (this.deserialize == null) {
+		deserialize = XStreamUtility.getDeserialize();
+	    }
+	    
 	    File preferencesFile = getPreferencesFile();
 	    String rootNodeName = "aof2es";
 	    BufferedWriter out = new BufferedWriter(
 		    new OutputStreamWriter(new FileOutputStream(preferencesFile), "UTF-8"));
-	    out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+	    // out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 	    ObjectOutputStream oos;
-	    oos = xstream.createObjectOutputStream(out, rootNodeName);
+	    oos = deserialize.createObjectOutputStream(out, rootNodeName);
 	    oos.writeObject(applicationPreferences);
 	    oos.close();
 	}
