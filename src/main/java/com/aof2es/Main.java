@@ -22,15 +22,16 @@ public class Main {
     private static Logger LOG = Logger.getLogger(Main.class);
 
     public static void main(String[] args) {
-	new Main(args);
+	new Main();
     }
 
     private IPreferences preferences;
 
-    public Main(String[] args) {
-	if (args == null) {
-	    args = new String[] {};
-	}
+    public Main() {
+	init();
+    }
+    
+    public void init() {
 	initConsoleLog4J();
 	LOG.info("Starting AOF2ES Daemon");
 	loadPreferences();
@@ -41,12 +42,13 @@ public class Main {
 	    indexer.connect();
 	    Reader.read(applicationPreferences.getAofFilePath(), indexer);
 	} catch (Exception ex) {
-	    LOG.error(ex);
+	    LOG.fatal(ex);
 	    // sleep to throttle in case this daemon respawns quickly.
 	    try {
 		Thread.sleep(3000);
 	    } catch (InterruptedException e) {
 	    }
+	    System.exit(0);
 	}
     }
 
@@ -77,10 +79,15 @@ public class Main {
     }
 
     public static void init(DaemonContext context) {
+	new Main();
     }
 
     public void stop() {
+	
+	// TODO: should do this more cleanly by interrupting.
 	LOG.info("Stopping AOF2ES Daemon");
+	System.exit(0);
+	
     }
 
     public void destroy() {

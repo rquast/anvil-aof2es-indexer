@@ -20,7 +20,7 @@ public class DaemonImpl implements Daemon {
     @Override
     public void start() throws Exception {
 	if (this.main == null) {
-	    this.main = new Main(new String[] {});
+	    this.main = new Main();
 	}
     }
 
