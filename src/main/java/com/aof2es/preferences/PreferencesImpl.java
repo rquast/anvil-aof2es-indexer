@@ -68,27 +68,27 @@ public class PreferencesImpl implements IPreferences {
     public final synchronized void load() throws IOException, ClassNotFoundException {
 
 	tmpDir.deleteOnExit();
-	serialize = XStreamUtility.getSerialize();
+	deserialize = XStreamUtility.getDeserialize();
 
 	File preferencesFile = getPreferencesFile();
 	if (!(preferencesFile.exists())) {
 	    save();
 	}
 
-	serialize.alias("applicationPreferences", ApplicationPreferences.class);
-	applicationPreferences = (ApplicationPreferences)serialize.fromXML(preferencesFile);
+	deserialize.alias("applicationPreferences", ApplicationPreferences.class);
+	applicationPreferences = (ApplicationPreferences)deserialize.fromXML(preferencesFile);
 
     }
 
     @Override
     public final synchronized void save() throws IOException {
 	synchronized (PreferencesImpl.class) {
-	    if (this.deserialize == null) {
-		deserialize = XStreamUtility.getDeserialize();
+	    if (this.serialize == null) {
+		serialize = XStreamUtility.getSerialize();
 	    }	    
 	    File preferencesFile = getPreferencesFile();
 	    FileOutputStream fos = new FileOutputStream(preferencesFile);
-	    deserialize.toXML(applicationPreferences, fos);
+	    serialize.toXML(applicationPreferences, fos);
 	    fos.close();
 	}
     }

@@ -12,7 +12,7 @@ import com.thoughtworks.xstream.mapper.MapperWrapper;
 
 public final class XStreamUtility {
 
-    public static XStream getSerialize() {
+    public static XStream getDeserialize() {
 	final XStream xstream = new XStream(new JettisonMappedXmlDriver() {
 	    @Override
 	    public HierarchicalStreamWriter createWriter(final Writer writer) {
@@ -40,7 +40,7 @@ public final class XStreamUtility {
 	return xstream;
     }
 
-    public static XStream getDeserialize() {
+    public static XStream getSerialize() {
 	final XStream xstream = new XStream(new JsonHierarchicalStreamDriver()) {
 	    @Override
 	    protected MapperWrapper wrapMapper(MapperWrapper next) {
