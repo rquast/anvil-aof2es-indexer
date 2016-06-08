@@ -34,12 +34,19 @@ public class Main {
 	initConsoleLog4J();
 	LOG.info("Starting AOF2ES Daemon");
 	loadPreferences();
-	ApplicationPreferences ap = this.preferences.getApplicationPreferences();
+	ApplicationPreferences applicationPreferences = this.preferences.getApplicationPreferences();
 	try {
-	    Indexer indexer = new Indexer(ap);
-	    Reader.read(ap.getAofFilePath(), indexer);
+	    Indexer indexer = new Indexer();
+	    indexer.setApplicationPreferences(applicationPreferences);
+	    indexer.connect();
+	    Reader.read(applicationPreferences.getAofFilePath(), indexer);
 	} catch (Exception ex) {
 	    LOG.error(ex);
+	    // sleep to throttle in case this daemon respawns quickly.
+	    try {
+		Thread.sleep(3000);
+	    } catch (InterruptedException e) {
+	    }
 	}
     }
 

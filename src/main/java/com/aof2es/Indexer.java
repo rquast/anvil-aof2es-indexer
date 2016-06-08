@@ -2,12 +2,29 @@ package com.aof2es;
 
 import com.aof2es.xstream.model.ApplicationPreferences;
 
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+
 public class Indexer implements CommandProcessor {
 
-    private ApplicationPreferences ap;
+    private ApplicationPreferences applicationPreferences;
+    private TransportClient client;
 
-    public Indexer(ApplicationPreferences ap) {
-	this.ap = ap;
+    public Indexer() {
+    }
+
+    public void setApplicationPreferences(ApplicationPreferences applicationPreferences) {
+        this.applicationPreferences = applicationPreferences;
+    }
+    
+    public void connect() {
+	this.client = new TransportClient();
+	this.client.addTransportAddress(
+		new InetSocketTransportAddress(
+			this.applicationPreferences.getNodeAddress(),
+			this.applicationPreferences.getNodePort()
+			)
+		);
     }
 
     @Override
