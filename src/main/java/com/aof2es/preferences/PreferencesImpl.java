@@ -75,42 +75,21 @@ public class PreferencesImpl implements IPreferences {
 	    save();
 	}
 
-	ObjectInputStream s = null;
-	FileInputStream fis = null;
-	try {
-	    fis = new FileInputStream(preferencesFile);
-	    s = serialize.createObjectInputStream(new InputStreamReader(fis, "UTF-8"));
-	    applicationPreferences = ((ApplicationPreferences) s.readObject());
-	} catch (IOException ex) {
-	    throw ex;
-	} finally {
-	    if (s != null) {
-		s.close();
-	    }
-	    if (fis != null) {
-		fis.close();
-	    }
-	}
+	serialize.alias("applicationPreferences", ApplicationPreferences.class);
+	applicationPreferences = (ApplicationPreferences)serialize.fromXML(preferencesFile);
 
     }
 
     @Override
     public final synchronized void save() throws IOException {
 	synchronized (PreferencesImpl.class) {
-	    
 	    if (this.deserialize == null) {
 		deserialize = XStreamUtility.getDeserialize();
-	    }
-	    
+	    }	    
 	    File preferencesFile = getPreferencesFile();
-	    String rootNodeName = "aof2es";
-	    BufferedWriter out = new BufferedWriter(
-		    new OutputStreamWriter(new FileOutputStream(preferencesFile), "UTF-8"));
-	    // out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-	    ObjectOutputStream oos;
-	    oos = deserialize.createObjectOutputStream(out, rootNodeName);
-	    oos.writeObject(applicationPreferences);
-	    oos.close();
+	    FileOutputStream fos = new FileOutputStream(preferencesFile);
+	    deserialize.toXML(applicationPreferences, fos);
+	    fos.close();
 	}
     }
 
