@@ -6,35 +6,28 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.aof2es.preferences.IPreferences;
+import com.aof2es.xstream.model.ApplicationPreferences;
+
 public class Reader {
 
     static final Logger LOG = Logger.getLogger(Reader.class);
     
     public static enum Command { MULTI, EXEC, DISCARD, SELECT, SET, ZADD, ZREM, HSET, PEXPIREAT, DEL }
 
-    private long pos = 0L;
-
     private RandomAccessFile reader;
     
     private ArrayList<String[]> transactionBuffer = new ArrayList<String[]>();
 
-    private CommandProcessor commandProcessor;
+    private ICommandProcessor commandProcessor;
 
-    public Reader(RandomAccessFile reader, CommandProcessor commandProcessor) {
+    public Reader(RandomAccessFile reader, ICommandProcessor commandProcessor) {
 	this.reader = reader;
 	this.commandProcessor = commandProcessor;
     }
 
     public RandomAccessFile getReader() {
         return reader;
-    }
-
-    public long getPos() {
-	return pos;
-    }
-    
-    private void setPos(long pos) {
-	this.pos = pos;
     }
 
     private static byte[] toByteArray(List<Integer> in) {
@@ -187,25 +180,32 @@ public class Reader {
 	
     }
 
-    public static void read(String filePath, CommandProcessor commandProcessor) {
+    public static void read(IPreferences preferences, ICommandProcessor commandProcessor) {
+	
+	ApplicationPreferences applicationPreferences = preferences.getApplicationPreferences();
 	
 	RandomAccessFile raf = null;
 
 	try {
 	    
-	    File file = new File(filePath);
+	    File file = new File(applicationPreferences.getAofFilePath());
 	    raf = new RandomAccessFile(file, "r");
 	    Reader r = new Reader(raf, commandProcessor);
 	    
 	    if (file.exists() && file.canRead()) {
 		while (true) {
-		    raf.seek(r.getPos());
+		    raf.seek(applicationPreferences.getPos());
 		    String[] args;
 		    while ((args = r.next()) != null) {
 			r.process(args);
 		    }
-		    r.setPos(raf.getFilePointer());
-		    Thread.sleep(100);
+		    
+		    if (applicationPreferences.getPos() != raf.getFilePointer()) {
+			applicationPreferences.setPos(raf.getFilePointer());
+			preferences.save();
+		    } else {
+			Thread.sleep(100);
+		    }
 		}
 	    }
 	    

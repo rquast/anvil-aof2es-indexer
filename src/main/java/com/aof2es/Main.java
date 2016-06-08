@@ -35,12 +35,11 @@ public class Main {
 	initLogging();
 	LOG.info("Starting AOF2ES Daemon");
 	loadPreferences();
-	ApplicationPreferences applicationPreferences = this.preferences.getApplicationPreferences();
 	try {
 	    Indexer indexer = new Indexer();
-	    indexer.setApplicationPreferences(applicationPreferences);
+	    indexer.setPreferences(this.preferences);
 	    indexer.connect();
-	    Reader.read(applicationPreferences.getAofFilePath(), indexer);
+	    Reader.read(this.preferences, indexer);
 	} catch (Exception ex) {
 	    LOG.fatal(ex.getLocalizedMessage(), ex);
 	    // sleep to throttle in case this daemon respawns quickly.

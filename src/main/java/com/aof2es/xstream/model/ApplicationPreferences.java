@@ -10,6 +10,8 @@ public class ApplicationPreferences {
     private String nodeAddress = "127.0.0.1";
     
     private int nodePort = 9300;
+    
+    private long pos = 0L;
 
     public String getAofFilePath() {
         return aofFilePath;
@@ -33,6 +35,14 @@ public class ApplicationPreferences {
 
     public void setAofFilePath(String aofFilePath) {
         this.aofFilePath = aofFilePath;
+    }
+
+    public long getPos() {
+        return pos;
+    }
+
+    public void setPos(long pos) {
+        this.pos = pos;
     }
     
 }

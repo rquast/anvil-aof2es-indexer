@@ -4,6 +4,7 @@ import com.aof2es.elastic.model.Bool;
 import com.aof2es.elastic.model.Filter;
 import com.aof2es.elastic.model.Must;
 import com.aof2es.elastic.model.Query;
+import com.aof2es.preferences.IPreferences;
 import com.aof2es.xstream.XStreamUtility;
 import com.aof2es.xstream.model.ApplicationPreferences;
 import com.thoughtworks.xstream.XStream;
@@ -13,11 +14,11 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
-public class Indexer implements CommandProcessor {
+public class Indexer implements ICommandProcessor {
 
     private static Logger LOG = Logger.getLogger(Indexer.class);
     
-    private ApplicationPreferences applicationPreferences;
+    private IPreferences preferences;
     private TransportClient client;
     private XStream serialize;
 
@@ -33,16 +34,17 @@ public class Indexer implements CommandProcessor {
 	xstream.processAnnotations(Filter.class);
     }
     
-    public void setApplicationPreferences(ApplicationPreferences applicationPreferences) {
-        this.applicationPreferences = applicationPreferences;
+    public void setPreferences(IPreferences preferences) {
+        this.preferences = preferences;
     }
-    
+
     public void connect() {
+	ApplicationPreferences applicationPreferences = this.preferences.getApplicationPreferences();
 	this.client = new TransportClient();
 	this.client.addTransportAddress(
 		new InetSocketTransportAddress(
-			this.applicationPreferences.getNodeAddress(),
-			this.applicationPreferences.getNodePort()
+			applicationPreferences.getNodeAddress(),
+			applicationPreferences.getNodePort()
 			)
 		);
     }

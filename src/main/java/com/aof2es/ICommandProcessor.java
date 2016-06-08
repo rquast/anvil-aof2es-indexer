@@ -1,6 +1,6 @@
 package com.aof2es;
 
-public interface CommandProcessor {
+public interface ICommandProcessor {
     
     public void processDelCommand(String[] args);
 
