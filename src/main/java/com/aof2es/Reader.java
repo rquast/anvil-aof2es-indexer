@@ -113,6 +113,8 @@ public class Reader {
     
     private void processCommand(String[] args) {
 	
+	printArgs(args);
+	
 	String cmdStr = args[0].toUpperCase();
 
 	Command cmd;

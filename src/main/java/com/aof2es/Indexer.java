@@ -25,6 +25,20 @@ public class Indexer implements ICommandProcessor {
     public Indexer() {
 	this.serialize = XStreamUtility.getSerialize();
 	processAnnotations(this.serialize);
+	resetElasticSearch();
+    }
+    
+    private void resetElasticSearch() {
+
+	if (this.preferences.getApplicationPreferences().getPos() != 0) {
+	    return;
+	}
+	
+	// TODO: delete from elasticsearch if position is 0 so we can rebuild.
+	
+	// leave arg 2 and 3 null to delete all?
+	// DeleteResponse response = client.prepareDelete("twitter", "tweet", "1").get();
+	
     }
 
     private void processAnnotations(XStream xstream) {
@@ -66,7 +80,7 @@ public class Indexer implements ICommandProcessor {
 	// TODO Auto-generated method stub
 	Query query = new Query();
 	String json = serialize.toXML(query);
-	System.out.println(json);
+	// System.out.println(json);
 	
 	/*
 	
