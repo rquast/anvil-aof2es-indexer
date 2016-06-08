@@ -1,14 +1,8 @@
 package com.aof2es.preferences;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStreamWriter;
 
 import com.aof2es.xstream.XStreamUtility;
 import com.aof2es.xstream.model.ApplicationPreferences;
