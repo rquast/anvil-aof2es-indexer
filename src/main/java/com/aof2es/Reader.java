@@ -6,9 +6,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-public class AnvilRedisAOFReader {
+public class Reader {
 
-    static final Logger LOG = Logger.getLogger(AnvilRedisAOFReader.class);
+    static final Logger LOG = Logger.getLogger(Reader.class);
     
     public static enum Command { MULTI, EXEC, DISCARD, SELECT, SET, ZADD, ZREM, HSET, PEXPIREAT, DEL }
 
@@ -20,7 +20,7 @@ public class AnvilRedisAOFReader {
 
     private CommandProcessor commandProcessor;
 
-    public AnvilRedisAOFReader(RandomAccessFile reader, CommandProcessor commandProcessor) {
+    public Reader(RandomAccessFile reader, CommandProcessor commandProcessor) {
 	this.reader = reader;
 	this.commandProcessor = commandProcessor;
     }
@@ -125,7 +125,7 @@ public class AnvilRedisAOFReader {
 	Command cmd;
 	
 	try {
-	    cmd = AnvilRedisAOFReader.Command.valueOf(cmdStr);
+	    cmd = Reader.Command.valueOf(cmdStr);
 	} catch (IllegalArgumentException e) {
 	    LOG.debug("Command not found: " + cmdStr);
 	    return;
@@ -195,7 +195,7 @@ public class AnvilRedisAOFReader {
 	    
 	    File file = new File(filePath);
 	    raf = new RandomAccessFile(file, "r");
-	    AnvilRedisAOFReader r = new AnvilRedisAOFReader(raf, commandProcessor);
+	    Reader r = new Reader(raf, commandProcessor);
 	    
 	    if (file.exists() && file.canRead()) {
 		while (true) {

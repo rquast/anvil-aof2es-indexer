@@ -17,7 +17,7 @@ import com.aof2es.xstream.model.ApplicationPreferences;
  * @author Roland Quast (rquast@rolandquast.com)
  *
  */
-public class Main implements CommandProcessor {
+public class Main {
 
     private static Logger LOG = Logger.getLogger(Main.class);
 
@@ -36,7 +36,8 @@ public class Main implements CommandProcessor {
 	loadPreferences();
 	ApplicationPreferences ap = this.preferences.getApplicationPreferences();
 	try {
-	    processFile(ap.getAofFilePath());
+	    Indexer indexer = new Indexer(ap);
+	    Reader.read(ap.getAofFilePath(), indexer);
 	} catch (Exception ex) {
 	    LOG.error(ex);
 	}
@@ -53,41 +54,6 @@ public class Main implements CommandProcessor {
 	    LOG.fatal(e, e);
 	    System.exit(0);
 	}
-    }
-
-    private void processFile(String aofFilePath) throws IOException, InterruptedException {
-	AnvilRedisAOFReader.read(aofFilePath, this);
-    }
-    
-    
-    public void processDelCommand(String[] args) {
-	// TODO Auto-generated method stub
-	
-    }
-
-    public void processPexpireatCommand(String[] args) {
-	// TODO Auto-generated method stub
-	
-    }
-
-    public void processHsetCommand(String[] args) {
-	// TODO Auto-generated method stub
-	
-    }
-
-    public void processZremCommand(String[] args) {
-	// TODO Auto-generated method stub
-	
-    }
-
-    public void processZsetCommand(String[] args) {
-	// TODO Auto-generated method stub
-	
-    }
-
-    public void processSetCommand(String[] args) {
-	// TODO Auto-generated method stub
-	
     }
 
     public void initConsoleLog4J() {

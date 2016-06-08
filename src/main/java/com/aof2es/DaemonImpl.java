@@ -8,7 +8,7 @@ import org.apache.commons.daemon.DaemonInitException;
  * @author Roland Quast (rquast@rolandquast.com)
  *
  */
-public class IndexerDaemon implements Daemon {
+public class DaemonImpl implements Daemon {
 
     private Main main;
 
