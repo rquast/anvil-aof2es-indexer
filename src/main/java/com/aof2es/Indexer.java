@@ -8,14 +8,15 @@ import com.aof2es.xstream.XStreamUtility;
 import com.aof2es.xstream.model.ApplicationPreferences;
 import com.thoughtworks.xstream.XStream;
 
-import java.io.File;
-import java.io.FileOutputStream;
-
+import org.apache.log4j.Logger;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 public class Indexer implements CommandProcessor {
 
+    private static Logger LOG = Logger.getLogger(Indexer.class);
+    
     private ApplicationPreferences applicationPreferences;
     private TransportClient client;
     private XStream serialize;
@@ -62,8 +63,24 @@ public class Indexer implements CommandProcessor {
     public void processHsetCommand(String[] args) {
 	// TODO Auto-generated method stub
 	Query query = new Query();
-	String hsetString = serialize.toXML(query);
-	System.out.println(hsetString);
+	String json = serialize.toXML(query);
+	System.out.println(json);
+	
+	/*
+	
+	IndexResponse response = null;
+
+	try {
+	    response = client
+		    .prepareIndex("index", "type", "id")
+		    .setSource(json).execute().actionGet();
+	} catch (Exception ex) {
+	    LOG.error(ex, ex);
+	}
+	
+	*/
+	
+	// then do something with response...
 	
     }
 
