@@ -1,51 +1,35 @@
 package com.aof2es;
 
-import com.aof2es.elastic.model.Bool;
-import com.aof2es.elastic.model.Filter;
-import com.aof2es.elastic.model.Must;
-import com.aof2es.elastic.model.Query;
 import com.aof2es.preferences.IPreferences;
 import com.aof2es.xstream.XStreamUtility;
 import com.aof2es.xstream.model.ApplicationPreferences;
+import com.rethinkdb.RethinkDB;
+import com.rethinkdb.RethinkDBConnection;
 import com.thoughtworks.xstream.XStream;
 
+import java.sql.Connection;
+
 import org.apache.log4j.Logger;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+
 
 public class Indexer implements ICommandProcessor {
 
     private static Logger LOG = Logger.getLogger(Indexer.class);
     
     private IPreferences preferences;
-    private TransportClient client;
+    private RethinkDB r;
     private XStream serialize;
+
+    private RethinkDBConnection conn;
 
     public Indexer() {
 	this.serialize = XStreamUtility.getSerialize();
 	processAnnotations(this.serialize);
-	resetElasticSearch();
-    }
-    
-    private void resetElasticSearch() {
-
-	if (this.preferences.getApplicationPreferences().getPos() != 0) {
-	    return;
-	}
-	
-	// TODO: delete from elasticsearch if position is 0 so we can rebuild.
-	
-	// leave arg 2 and 3 null to delete all?
-	// DeleteResponse response = client.prepareDelete("twitter", "tweet", "1").get();
-	
+	r = RethinkDB.r;
     }
 
     private void processAnnotations(XStream xstream) {
-	xstream.processAnnotations(Query.class);
-	xstream.processAnnotations(Must.class);
-	xstream.processAnnotations(Bool.class);
-	xstream.processAnnotations(Filter.class);
+	// xstream.processAnnotations(Query.class);
     }
     
     public void setPreferences(IPreferences preferences) {
@@ -53,14 +37,21 @@ public class Indexer implements ICommandProcessor {
     }
 
     public void connect() {
+	
 	ApplicationPreferences applicationPreferences = this.preferences.getApplicationPreferences();
-	this.client = new TransportClient();
-	this.client.addTransportAddress(
-		new InetSocketTransportAddress(
-			applicationPreferences.getNodeAddress(),
-			applicationPreferences.getNodePort()
-			)
-		);
+	this.conn = r.connect(applicationPreferences.getNodeAddress(), applicationPreferences.getNodePort());
+	
+    }
+    
+    public static void printArgs(String[] args) {
+
+	StringBuffer sb = new StringBuffer();
+	sb.append("Command: " + args[0]);
+	for (int i = 1; i < args.length; i++) {
+	    sb.append(" arg" + i + ": " + args[i]);
+	}
+	System.out.println(sb.toString());
+
     }
 
     @Override
@@ -77,9 +68,12 @@ public class Indexer implements ICommandProcessor {
 
     @Override
     public void processHsetCommand(String[] args) {
+	
+	printArgs(args);
+	
 	// TODO Auto-generated method stub
-	Query query = new Query();
-	String json = serialize.toXML(query);
+	// Query query = new Query();
+	// String json = serialize.toXML(query);
 	// System.out.println(json);
 	
 	/*
@@ -99,6 +93,15 @@ public class Indexer implements ICommandProcessor {
 	// then do something with response...
 	
     }
+    
+    @Override
+    public void processHdelCommand(String[] args) {
+	
+	printArgs(args);
+	
+	// TODO: set a delete flag for the key
+	
+    }
 
     @Override
     public void processZremCommand(String[] args) {
@@ -115,6 +118,7 @@ public class Indexer implements ICommandProcessor {
     @Override
     public void processSetCommand(String[] args) {
 	// TODO Auto-generated method stub
+	// printArgs(args);
 	
     }
 

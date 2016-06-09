@@ -13,4 +13,6 @@ public interface ICommandProcessor {
     public void processZsetCommand(String[] args);
 
     public void processSetCommand(String[] args);
+
+    public void processHdelCommand(String[] args);
 }

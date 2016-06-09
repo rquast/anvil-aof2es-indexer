@@ -13,7 +13,7 @@ public class Reader {
 
     static final Logger LOG = Logger.getLogger(Reader.class);
     
-    public static enum Command { MULTI, EXEC, DISCARD, SELECT, SET, ZADD, ZREM, HSET, PEXPIREAT, DEL }
+    public static enum Command { MULTI, EXEC, DISCARD, SELECT, SET, ZADD, ZREM, HSET, HDEL, PEXPIREAT, DEL }
 
     private RandomAccessFile reader;
     
@@ -113,8 +113,6 @@ public class Reader {
     
     private void processCommand(String[] args) {
 	
-	printArgs(args);
-	
 	String cmdStr = args[0].toUpperCase();
 
 	Command cmd;
@@ -149,6 +147,10 @@ public class Reader {
 
 	case HSET:
 	    commandProcessor.processHsetCommand(args);
+	    break;
+	    
+	case HDEL:
+	    commandProcessor.processHdelCommand(args);
 	    break;
 
 	case PEXPIREAT:

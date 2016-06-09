@@ -152,9 +152,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.elasticsearch</groupId>
-			<artifactId>elasticsearch</artifactId>
-			<version>${es.version}</version>
+		    <groupId>com.rethinkdb</groupId>
+		    <artifactId>rethink-java-driver</artifactId>
+		    <version>0.3</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-daemon</groupId>
