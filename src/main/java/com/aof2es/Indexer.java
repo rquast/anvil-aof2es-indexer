@@ -21,6 +21,8 @@ public class Indexer implements ICommandProcessor {
 
     private static Logger LOG = Logger.getLogger(Indexer.class);
     
+    public static enum Type { USERS, SCOPES, ROLES }
+    
     private IPreferences preferences;
     private XStream serialize;
 
@@ -71,17 +73,52 @@ public class Indexer implements ICommandProcessor {
 	// TODO Auto-generated method stub
 	
     }
+    
+    private Type getType(String[] args) {
+	
+	String typeStr = args[1].toUpperCase();
+
+	Type type;
+	
+	try {
+	    type = Indexer.Type.valueOf(typeStr);
+	} catch (IllegalArgumentException e) {
+	    LOG.debug("Type not found: " + typeStr);
+	    return null;
+	}
+	
+	return type;
+	
+    }
 
     @Override
     public void processHsetCommand(String[] args) throws IOException {
 	
-	printArgs(args);
+	switch (getType(args)) {
 	
-	// TODO Auto-generated method stub
-	// Query query = new Query();
-	// String json = serialize.toXML(query);
-	// System.out.println(json);
+	case USERS:
+	    // xstream serialization code.. can use for deserialization of redis data?
+	    // Query query = new Query();
+	    // String json = serialize.toXML(query);
+	    // System.out.println(json);
+	    System.out.println("NEW USER.. KEY: " + args[2] + " DATA: " + args[3]);
+	    break;
+	    
+	case ROLES:
+	    System.out.println("NEW ROLE.. KEY: " + args[2] + " DATA: " + args[3]);
+	    break;
+	    
+	case SCOPES:
+	    System.out.println("NEW SCOPE.. KEY: " + args[2] + " DATA: " + args[3]);
+	    break;
 	
+	default:
+	    return;
+	    
+	}
+	
+	
+	/*
 	IndexResponse response = client.prepareIndex("twitter", "tweet", "1")
 	        .setSource(jsonBuilder()
 	                    .startObject()
@@ -91,42 +128,43 @@ public class Indexer implements ICommandProcessor {
 	                    .endObject()
 	                  )
 	        .get();
-	
-	// Index name
-	String _index = response.getIndex();
-	// Type name
-	String _type = response.getType();
-	// Document ID (generated or not)
-	String _id = response.getId();
-	// Version (if it's the first time you index this document, you will get: 1)
-	long _version = response.getVersion();
-	// isCreated() is true if the document is a new one, false if it has been updated
-	boolean created = response.isCreated();
-	
-	/*
-	
-	IndexResponse response = null;
-
-	try {
-	    response = client
-		    .prepareIndex("index", "type", "id")
-		    .setSource(json).execute().actionGet();
-	} catch (Exception ex) {
-	    LOG.error(ex, ex);
-	}
-	
 	*/
 	
-	// then do something with response...
+	// Index name
+	//String _index = response.getIndex();
+	// Type name
+	//String _type = response.getType();
+	// Document ID (generated or not)
+	//String _id = response.getId();
+	// Version (if it's the first time you index this document, you will get: 1)
+	//long _version = response.getVersion();
+	// isCreated() is true if the document is a new one, false if it has been updated
+	//boolean created = response.isCreated();
 	
     }
     
     @Override
     public void processHdelCommand(String[] args) {
 	
-	printArgs(args);
+	switch (getType(args)) {
 	
-	// TODO: set a delete flag for the key
+	case USERS:
+	    System.out.println("DELETE USER.. KEY: " + args[2]);
+	    break;
+	    
+	case ROLES:
+	    System.out.println("DELETE ROLE.. KEY: " + args[2]);
+	    break;
+	    
+	case SCOPES:
+	    System.out.println("DELETE SCOPE.. KEY: " + args[2]);
+	    break;
+	
+	default:
+	    return;
+	    
+	}
+	
 	
     }
 

@@ -1,4 +1,4 @@
-# Anvil Connect ElasticSearch Sync
+# Anvil Connect ElasticSearch Indexer
 
 ## Description
 
