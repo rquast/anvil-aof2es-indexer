@@ -4,8 +4,8 @@
 	<groupId>com.aof2es</groupId>
 	<artifactId>aof2es</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Anvil Redis AOF to ElasticSearch Indexer</name>
-	<description>Reads Redis AOF files produced by Anvil and indexes ElasticSearch.</description>
+	<name>Anvil Connect User Sync</name>
+	<description>Reads Redis AOF files produced by Anvil and sends User, Role and Scope information to RethinkDB.</description>
 	<url>http://github.com/cavyio/anvil-aof2es-indexer</url>
 	<inceptionYear>2016</inceptionYear>
 
@@ -153,8 +153,8 @@
 	<dependencies>
 		<dependency>
 		    <groupId>com.rethinkdb</groupId>
-		    <artifactId>rethink-java-driver</artifactId>
-		    <version>0.3</version>
+		    <artifactId>rethinkdb-driver</artifactId>
+		    <version>2.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-daemon</groupId>
@@ -180,7 +180,16 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>18.0</version>
-		</dependency>			
+		</dependency>
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-api</artifactId>
+		    <version>1.7.21</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-log4j12</artifactId>
+		    <version>1.7.21</version>
+		</dependency>
 	</dependencies>
-
 </project>

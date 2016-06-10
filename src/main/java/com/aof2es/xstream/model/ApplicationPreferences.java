@@ -9,7 +9,7 @@ public class ApplicationPreferences {
     
     private String nodeAddress = "127.0.0.1";
     
-    private int nodePort = 9300;
+    private int nodePort = 28015;
     
     private long pos = 0L;
 

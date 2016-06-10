@@ -4,10 +4,8 @@ import com.aof2es.preferences.IPreferences;
 import com.aof2es.xstream.XStreamUtility;
 import com.aof2es.xstream.model.ApplicationPreferences;
 import com.rethinkdb.RethinkDB;
-import com.rethinkdb.RethinkDBConnection;
+import com.rethinkdb.net.Connection;
 import com.thoughtworks.xstream.XStream;
-
-import java.sql.Connection;
 
 import org.apache.log4j.Logger;
 
@@ -20,7 +18,8 @@ public class Indexer implements ICommandProcessor {
     private RethinkDB r;
     private XStream serialize;
 
-    private RethinkDBConnection conn;
+    private Connection conn;
+
 
     public Indexer() {
 	this.serialize = XStreamUtility.getSerialize();
@@ -37,12 +36,18 @@ public class Indexer implements ICommandProcessor {
     }
 
     public void connect() {
-	
+
 	ApplicationPreferences applicationPreferences = this.preferences.getApplicationPreferences();
-	this.conn = r.connect(applicationPreferences.getNodeAddress(), applicationPreferences.getNodePort());
+
+	this.conn = r.connection().hostname(applicationPreferences.getNodeAddress())
+		.port(applicationPreferences.getNodePort()).connect();
 	
+	r.db("anvil").tableCreate("users").run(conn);
+	r.db("anvil").tableCreate("roles").run(conn);
+	r.db("anvil").tableCreate("scopes").run(conn);
+
     }
-    
+
     public static void printArgs(String[] args) {
 
 	StringBuffer sb = new StringBuffer();
