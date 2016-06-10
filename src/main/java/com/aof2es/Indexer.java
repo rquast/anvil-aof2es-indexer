@@ -17,6 +17,7 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
 
@@ -69,14 +70,12 @@ public class Indexer implements ICommandProcessor {
 
     @Override
     public void processDelCommand(String[] args) {
-	// TODO Auto-generated method stub
-	
+	printArgs(args);
     }
 
     @Override
     public void processPexpireatCommand(String[] args) {
-	// TODO Auto-generated method stub
-	
+	printArgs(args);
     }
     
     private Type getType(String[] args) {
@@ -99,57 +98,72 @@ public class Indexer implements ICommandProcessor {
     @Override
     public void processHsetCommand(String[] args) throws IOException {
 	
+	XContentBuilder source = jsonBuilder().startObject();
+	
+	IndexResponse response;
+
 	switch (getType(args)) {
 	
 	case USERS:
 
 	    User user = (User) deserialize.fromXML("{\"user\": " + args[3] + "}");
 	    
-	    System.out.println("NEW USER.. KEY: " + args[2] + " DATA: " + args[3]);
+	    // System.out.println("NEW USER.. KEY: " + args[2] + " DATA: " + args[3]);
+	    
+            source.field("email", user.getEmail())
+            .field("user_id", user.get_id())
+            .field("created", user.getCreated())
+            .field("modified", user.getModified());
+            source.endObject();
+            response = client.prepareIndex("anvil", "users", user.get_id()).setSource(source).get();
+            
 	    break;
 	    
 	case ROLES:
 	    
 	    Role role = (Role) deserialize.fromXML("{\"role\": " + args[3] + "}");
 	    
-	    System.out.println("NEW ROLE.. KEY: " + args[2] + " DATA: " + args[3]);
+	    // System.out.println("NEW ROLE.. KEY: " + args[2] + " DATA: " + args[3]);
+	    
+            source.field("name", role.getName())
+            .field("created", role.getCreated())
+            .field("modified", role.getModified());
+            source.endObject();
+            response = client.prepareIndex("anvil", "roles", role.getName()).setSource(source).get();
+            
 	    break;
 	    
 	case SCOPES:
 	    
 	    Scope scope = (Scope) deserialize.fromXML("{\"scope\": " + args[3] + "}");
 	    
-	    System.out.println("NEW SCOPE.. KEY: " + args[2] + " DATA: " + args[3]);
+	    // System.out.println("NEW SCOPE.. KEY: " + args[2] + " DATA: " + args[3]);
+	    
+            source.field("name", scope.getName())
+            .field("restricted", scope.isRestricted() ? "true": "false")
+            .field("description", scope.getDescription())
+            .field("created", scope.getCreated())
+            .field("modified", scope.getModified());
+            source.endObject();
+            response = client.prepareIndex("anvil", "scopes", scope.getName()).setSource(source).get();
+    	
 	    break;
 	
 	default:
 	    return;
 	    
 	}
-	
-	
-	/*
-	IndexResponse response = client.prepareIndex("twitter", "tweet", "1")
-	        .setSource(jsonBuilder()
-	                    .startObject()
-	                        .field("user", "kimchy")
-	                        // .field("postDate", new Date())
-	                        .field("message", "trying out Elasticsearch")
-	                    .endObject()
-	                  )
-	        .get();
-	*/
-	
+
 	// Index name
-	//String _index = response.getIndex();
+	String _index = response.getIndex();
 	// Type name
-	//String _type = response.getType();
+	String _type = response.getType();
 	// Document ID (generated or not)
-	//String _id = response.getId();
+	String _id = response.getId();
 	// Version (if it's the first time you index this document, you will get: 1)
-	//long _version = response.getVersion();
+	long _version = response.getVersion();
 	// isCreated() is true if the document is a new one, false if it has been updated
-	//boolean created = response.isCreated();
+	boolean created = response.isCreated();
 	
     }
     
@@ -180,21 +194,17 @@ public class Indexer implements ICommandProcessor {
 
     @Override
     public void processZremCommand(String[] args) {
-	// TODO Auto-generated method stub
-	
+	printArgs(args);
     }
 
     @Override
     public void processZsetCommand(String[] args) {
-	// TODO Auto-generated method stub
-	
+	printArgs(args);
     }
 
     @Override
     public void processSetCommand(String[] args) {
-	// TODO Auto-generated method stub
-	// printArgs(args);
-	
+	printArgs(args);
     }
 
 }
