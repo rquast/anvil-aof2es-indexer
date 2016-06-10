@@ -11,7 +11,6 @@ import org.apache.log4j.PatternLayout;
 
 import com.aof2es.preferences.IPreferences;
 import com.aof2es.preferences.PreferencesImpl;
-import com.aof2es.xstream.model.ApplicationPreferences;
 
 /**
  * @author Roland Quast (rquast@rolandquast.com)

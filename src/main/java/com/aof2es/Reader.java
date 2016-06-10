@@ -111,7 +111,7 @@ public class Reader {
 
     }
     
-    private void processCommand(String[] args) {
+    private void processCommand(String[] args) throws IOException {
 	
 	String cmdStr = args[0].toUpperCase();
 
@@ -165,7 +165,7 @@ public class Reader {
 	
     }
 
-    private void process(String[] args) {
+    private void process(String[] args) throws IOException {
 	
 	String cmdStr = args[0].toUpperCase();
 	
@@ -198,18 +198,31 @@ public class Reader {
 	    
 	    if (file.exists() && file.canRead()) {
 		while (true) {
+		    
 		    raf.seek(applicationPreferences.getPos());
 		    String[] args;
-		    while ((args = r.next()) != null) {
-			r.process(args);
+
+		    try {
+			
+			while ((args = r.next()) != null) {
+			    r.process(args);
+			}
+
+		    } catch (Exception ex) {
+			
+			throw ex;
+
+		    } finally {
+
+			if (applicationPreferences.getPos() != raf.getFilePointer()) {
+			    applicationPreferences.setPos(raf.getFilePointer());
+			    preferences.save();
+			} else {
+			    Thread.sleep(100);
+			}
+
 		    }
 		    
-		    if (applicationPreferences.getPos() != raf.getFilePointer()) {
-			applicationPreferences.setPos(raf.getFilePointer());
-			preferences.save();
-		    } else {
-			Thread.sleep(100);
-		    }
 		}
 	    }
 	    

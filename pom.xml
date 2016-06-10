@@ -152,11 +152,6 @@
 
 	<dependencies>
 		<dependency>
-		    <groupId>com.rethinkdb</groupId>
-		    <artifactId>rethinkdb-driver</artifactId>
-		    <version>2.3.2</version>
-		</dependency>
-		<dependency>
 			<groupId>commons-daemon</groupId>
 			<artifactId>commons-daemon</artifactId>
 			<version>1.0.15</version>
@@ -182,14 +177,9 @@
 			<version>18.0</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.slf4j</groupId>
-		    <artifactId>slf4j-api</artifactId>
-		    <version>1.7.21</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.slf4j</groupId>
-		    <artifactId>slf4j-log4j12</artifactId>
-		    <version>1.7.21</version>
-		</dependency>
+		    <groupId>org.elasticsearch</groupId>
+		    <artifactId>elasticsearch</artifactId>
+		    <version>2.3.3</version>
+		</dependency>		
 	</dependencies>
 </project>

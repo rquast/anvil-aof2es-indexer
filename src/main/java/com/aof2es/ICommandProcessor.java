@@ -1,18 +1,20 @@
 package com.aof2es;
 
+import java.io.IOException;
+
 public interface ICommandProcessor {
     
-    public void processDelCommand(String[] args);
+    public void processDelCommand(String[] args) throws IOException;
 
-    public void processPexpireatCommand(String[] args);
+    public void processPexpireatCommand(String[] args) throws IOException;
 
-    public void processHsetCommand(String[] args);
+    public void processHsetCommand(String[] args) throws IOException;
 
-    public void processZremCommand(String[] args);
+    public void processZremCommand(String[] args) throws IOException;
 
-    public void processZsetCommand(String[] args);
+    public void processZsetCommand(String[] args) throws IOException;
 
-    public void processSetCommand(String[] args);
+    public void processSetCommand(String[] args) throws IOException;
 
-    public void processHdelCommand(String[] args);
+    public void processHdelCommand(String[] args) throws IOException;
 }

@@ -3,28 +3,33 @@ package com.aof2es;
 import com.aof2es.preferences.IPreferences;
 import com.aof2es.xstream.XStreamUtility;
 import com.aof2es.xstream.model.ApplicationPreferences;
-import com.rethinkdb.RethinkDB;
-import com.rethinkdb.net.Connection;
 import com.thoughtworks.xstream.XStream;
 
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
+import org.apache.log4j.Logger;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+
+import static org.elasticsearch.common.xcontent.XContentFactory.*;
 
 public class Indexer implements ICommandProcessor {
 
     private static Logger LOG = Logger.getLogger(Indexer.class);
     
     private IPreferences preferences;
-    private RethinkDB r;
     private XStream serialize;
 
-    private Connection conn;
+    private Client client;
 
 
     public Indexer() {
 	this.serialize = XStreamUtility.getSerialize();
 	processAnnotations(this.serialize);
-	r = RethinkDB.r;
     }
 
     private void processAnnotations(XStream xstream) {
@@ -35,16 +40,12 @@ public class Indexer implements ICommandProcessor {
         this.preferences = preferences;
     }
 
-    public void connect() {
+    public void connect() throws UnknownHostException {
 
 	ApplicationPreferences applicationPreferences = this.preferences.getApplicationPreferences();
 
-	this.conn = r.connection().hostname(applicationPreferences.getNodeAddress())
-		.port(applicationPreferences.getNodePort()).connect();
-	
-	r.db("anvil").tableCreate("users").run(conn);
-	r.db("anvil").tableCreate("roles").run(conn);
-	r.db("anvil").tableCreate("scopes").run(conn);
+	this.client = TransportClient.builder().build().addTransportAddress(new InetSocketTransportAddress(
+		InetAddress.getByName(applicationPreferences.getNodeAddress()), applicationPreferences.getNodePort()));
 
     }
 
@@ -72,7 +73,7 @@ public class Indexer implements ICommandProcessor {
     }
 
     @Override
-    public void processHsetCommand(String[] args) {
+    public void processHsetCommand(String[] args) throws IOException {
 	
 	printArgs(args);
 	
@@ -80,6 +81,27 @@ public class Indexer implements ICommandProcessor {
 	// Query query = new Query();
 	// String json = serialize.toXML(query);
 	// System.out.println(json);
+	
+	IndexResponse response = client.prepareIndex("twitter", "tweet", "1")
+	        .setSource(jsonBuilder()
+	                    .startObject()
+	                        .field("user", "kimchy")
+	                        // .field("postDate", new Date())
+	                        .field("message", "trying out Elasticsearch")
+	                    .endObject()
+	                  )
+	        .get();
+	
+	// Index name
+	String _index = response.getIndex();
+	// Type name
+	String _type = response.getType();
+	// Document ID (generated or not)
+	String _id = response.getId();
+	// Version (if it's the first time you index this document, you will get: 1)
+	long _version = response.getVersion();
+	// isCreated() is true if the document is a new one, false if it has been updated
+	boolean created = response.isCreated();
 	
 	/*
 	
