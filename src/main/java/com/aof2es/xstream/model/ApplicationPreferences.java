@@ -7,7 +7,7 @@ public class ApplicationPreferences {
 
     private String aofFilePath = "/var/lib/redis/appendonly.aof";
     
-    private String nodeAddress = "127.0.0.1";
+    private String nodeAddress = "localhost";
     
     private int nodePort = 9300;
     

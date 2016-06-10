@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
@@ -51,8 +52,12 @@ public class Indexer implements ICommandProcessor {
     public void connect() throws UnknownHostException {
 
 	ApplicationPreferences applicationPreferences = this.preferences.getApplicationPreferences();
+	
+	// *NOTE* *NOTE* *NOTE* You must configure elasticsearch.yml to have anvilConnect for cluster.name
+	Settings settings = Settings.settingsBuilder()
+	        .put("cluster.name", "anvilConnect").build();
 
-	this.client = TransportClient.builder().build().addTransportAddress(new InetSocketTransportAddress(
+	this.client = TransportClient.builder().settings(settings).build().addTransportAddress(new InetSocketTransportAddress(
 		InetAddress.getByName(applicationPreferences.getNodeAddress()), applicationPreferences.getNodePort()));
 
     }
@@ -115,7 +120,7 @@ public class Indexer implements ICommandProcessor {
             .field("created", user.getCreated())
             .field("modified", user.getModified());
             source.endObject();
-            response = client.prepareIndex("anvil", "users", user.get_id()).setSource(source).get();
+            response = client.prepareIndex("anvil", "users", user.get_id()).setSource(source).execute().actionGet();
             
 	    break;
 	    
@@ -129,7 +134,7 @@ public class Indexer implements ICommandProcessor {
             .field("created", role.getCreated())
             .field("modified", role.getModified());
             source.endObject();
-            response = client.prepareIndex("anvil", "roles", role.getName()).setSource(source).get();
+            response = client.prepareIndex("anvil", "roles", role.getName()).setSource(source).execute().actionGet();
             
 	    break;
 	    
@@ -145,7 +150,7 @@ public class Indexer implements ICommandProcessor {
             .field("created", scope.getCreated())
             .field("modified", scope.getModified());
             source.endObject();
-            response = client.prepareIndex("anvil", "scopes", scope.getName()).setSource(source).get();
+            response = client.prepareIndex("anvil", "scopes", scope.getName()).setSource(source).execute().actionGet();
     	
 	    break;
 	
