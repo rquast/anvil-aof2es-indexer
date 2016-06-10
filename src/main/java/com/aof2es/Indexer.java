@@ -11,9 +11,11 @@ import com.thoughtworks.xstream.XStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -26,7 +28,7 @@ public class Indexer implements ICommandProcessor {
 
     private static Logger LOG = Logger.getLogger(Indexer.class);
     
-    public static enum Type { USERS, SCOPES, ROLES }
+    public static enum Type { USERS, SCOPES, ROLES, UNKNOWN }
     
     private IPreferences preferences;
     private XStream deserialize;
@@ -53,9 +55,8 @@ public class Indexer implements ICommandProcessor {
 
 	ApplicationPreferences applicationPreferences = this.preferences.getApplicationPreferences();
 	
-	// *NOTE* *NOTE* *NOTE* You must configure elasticsearch.yml to have anvilConnect for cluster.name
 	Settings settings = Settings.settingsBuilder()
-	        .put("cluster.name", "anvilConnect").build();
+	        .put("cluster.name", applicationPreferences.getClusterName()).build();
 
 	this.client = TransportClient.builder().settings(settings).build().addTransportAddress(new InetSocketTransportAddress(
 		InetAddress.getByName(applicationPreferences.getNodeAddress()), applicationPreferences.getNodePort()));
@@ -75,12 +76,12 @@ public class Indexer implements ICommandProcessor {
 
     @Override
     public void processDelCommand(String[] args) {
-	printArgs(args);
+	// printArgs(args);
     }
 
     @Override
     public void processPexpireatCommand(String[] args) {
-	printArgs(args);
+	// printArgs(args);
     }
     
     private Type getType(String[] args) {
@@ -93,7 +94,7 @@ public class Indexer implements ICommandProcessor {
 	    type = Indexer.Type.valueOf(typeStr);
 	} catch (IllegalArgumentException e) {
 	    LOG.debug("Type not found: " + typeStr);
-	    return null;
+	    return Type.UNKNOWN;
 	}
 	
 	return type;
@@ -116,7 +117,6 @@ public class Indexer implements ICommandProcessor {
 	    // System.out.println("NEW USER.. KEY: " + args[2] + " DATA: " + args[3]);
 	    
             source.field("email", user.getEmail())
-            .field("user_id", user.get_id())
             .field("created", user.getCreated())
             .field("modified", user.getModified());
             source.endObject();
@@ -130,8 +130,7 @@ public class Indexer implements ICommandProcessor {
 	    
 	    // System.out.println("NEW ROLE.. KEY: " + args[2] + " DATA: " + args[3]);
 	    
-            source.field("name", role.getName())
-            .field("created", role.getCreated())
+            source.field("created", role.getCreated())
             .field("modified", role.getModified());
             source.endObject();
             response = client.prepareIndex("anvil", "roles", role.getName()).setSource(source).execute().actionGet();
@@ -144,8 +143,7 @@ public class Indexer implements ICommandProcessor {
 	    
 	    // System.out.println("NEW SCOPE.. KEY: " + args[2] + " DATA: " + args[3]);
 	    
-            source.field("name", scope.getName())
-            .field("restricted", scope.isRestricted() ? "true": "false")
+            source.field("restricted", scope.isRestricted() ? "true": "false")
             .field("description", scope.getDescription())
             .field("created", scope.getCreated())
             .field("modified", scope.getModified());
@@ -154,6 +152,7 @@ public class Indexer implements ICommandProcessor {
     	
 	    break;
 	
+	case UNKNOWN:
 	default:
 	    return;
 	    
@@ -173,22 +172,41 @@ public class Indexer implements ICommandProcessor {
     }
     
     @Override
-    public void processHdelCommand(String[] args) {
+    public void processHdelCommand(String[] args) throws IOException {
 	
 	switch (getType(args)) {
 	
 	case USERS:
-	    System.out.println("DELETE USER.. KEY: " + args[2]);
+	    
+	    // System.out.println("DELETE USER.. KEY: " + args[2]);
+	    
+	    UpdateRequest updateRequest = new UpdateRequest();
+	    updateRequest.index("anvil");
+	    updateRequest.type("users");
+	    updateRequest.id(args[2]);
+	    updateRequest.doc(jsonBuilder()
+	            .startObject()
+	                .field("deleted", "true")
+	            .endObject());
+	    try {
+		client.update(updateRequest).get();
+	    } catch (InterruptedException e) {
+		throw new IOException(e);
+	    } catch (ExecutionException e) {
+		throw new IOException(e);
+	    }
+	    
 	    break;
 	    
 	case ROLES:
-	    System.out.println("DELETE ROLE.. KEY: " + args[2]);
+	    // System.out.println("DELETE ROLE.. KEY: " + args[2]);
 	    break;
 	    
 	case SCOPES:
-	    System.out.println("DELETE SCOPE.. KEY: " + args[2]);
+	    // System.out.println("DELETE SCOPE.. KEY: " + args[2]);
 	    break;
 	
+	case UNKNOWN:
 	default:
 	    return;
 	    
@@ -199,17 +217,17 @@ public class Indexer implements ICommandProcessor {
 
     @Override
     public void processZremCommand(String[] args) {
-	printArgs(args);
+	// printArgs(args);
     }
 
     @Override
     public void processZsetCommand(String[] args) {
-	printArgs(args);
+	// printArgs(args);
     }
 
     @Override
     public void processSetCommand(String[] args) {
-	printArgs(args);
+	// printArgs(args);
     }
 
 }

@@ -227,7 +227,7 @@ public class Reader {
 	    }
 	    
 	} catch (Exception e) {
-	    LOG.error(e.getMessage());
+	    LOG.error(e.getMessage(), e);
 	} finally {
 	    if (raf != null) {
 		try {

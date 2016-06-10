@@ -9,6 +9,8 @@ public class ApplicationPreferences {
     
     private String nodeAddress = "localhost";
     
+    private String clusterName = "anvilConnect";
+    
     private int nodePort = 9300;
     
     private long pos = 0L;
@@ -43,6 +45,14 @@ public class ApplicationPreferences {
 
     public void setPos(long pos) {
         this.pos = pos;
+    }
+
+    public String getClusterName() {
+        return clusterName;
+    }
+
+    public void setClusterName(String clusterName) {
+        this.clusterName = clusterName;
     }
     
 }

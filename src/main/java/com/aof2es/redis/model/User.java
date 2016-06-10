@@ -7,6 +7,14 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("user")
 public class User {
     
+    private String givenName;
+    
+    private String familyName;
+    
+    private String nickname;
+    
+    private String preferredUsername;
+    
     private String email;
     
     private String hash;
@@ -65,6 +73,38 @@ public class User {
 
     public void setModified(long modified) {
         this.modified = modified;
+    }
+
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
+    }
+
+    public String getFamilyName() {
+        return familyName;
+    }
+
+    public void setFamilyName(String familyName) {
+        this.familyName = familyName;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public String getPreferredUsername() {
+        return preferredUsername;
+    }
+
+    public void setPreferredUsername(String preferredUsername) {
+        this.preferredUsername = preferredUsername;
     }
 
 }
