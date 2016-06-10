@@ -1,6 +1,9 @@
 package com.aof2es;
 
 import com.aof2es.preferences.IPreferences;
+import com.aof2es.redis.model.Role;
+import com.aof2es.redis.model.Scope;
+import com.aof2es.redis.model.User;
 import com.aof2es.xstream.XStreamUtility;
 import com.aof2es.xstream.model.ApplicationPreferences;
 import com.thoughtworks.xstream.XStream;
@@ -24,18 +27,20 @@ public class Indexer implements ICommandProcessor {
     public static enum Type { USERS, SCOPES, ROLES }
     
     private IPreferences preferences;
-    private XStream serialize;
+    private XStream deserialize;
 
     private Client client;
 
 
     public Indexer() {
-	this.serialize = XStreamUtility.getSerialize();
-	processAnnotations(this.serialize);
+	this.deserialize = XStreamUtility.getDeserialize();
+	processAnnotations(this.deserialize);
     }
 
     private void processAnnotations(XStream xstream) {
-	// xstream.processAnnotations(Query.class);
+	xstream.processAnnotations(Role.class);
+	xstream.processAnnotations(Scope.class);
+	xstream.processAnnotations(User.class);
     }
     
     public void setPreferences(IPreferences preferences) {
@@ -97,18 +102,23 @@ public class Indexer implements ICommandProcessor {
 	switch (getType(args)) {
 	
 	case USERS:
-	    // xstream serialization code.. can use for deserialization of redis data?
-	    // Query query = new Query();
-	    // String json = serialize.toXML(query);
-	    // System.out.println(json);
+
+	    User user = (User) deserialize.fromXML("{\"user\": " + args[3] + "}");
+	    
 	    System.out.println("NEW USER.. KEY: " + args[2] + " DATA: " + args[3]);
 	    break;
 	    
 	case ROLES:
+	    
+	    Role role = (Role) deserialize.fromXML("{\"role\": " + args[3] + "}");
+	    
 	    System.out.println("NEW ROLE.. KEY: " + args[2] + " DATA: " + args[3]);
 	    break;
 	    
 	case SCOPES:
+	    
+	    Scope scope = (Scope) deserialize.fromXML("{\"scope\": " + args[3] + "}");
+	    
 	    System.out.println("NEW SCOPE.. KEY: " + args[2] + " DATA: " + args[3]);
 	    break;
 	
