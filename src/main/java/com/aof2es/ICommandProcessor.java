@@ -12,7 +12,7 @@ public interface ICommandProcessor {
 
     public void processZremCommand(String[] args) throws IOException;
 
-    public void processZsetCommand(String[] args) throws IOException;
+    public void processZaddCommand(String[] args) throws IOException;
 
     public void processSetCommand(String[] args) throws IOException;
 

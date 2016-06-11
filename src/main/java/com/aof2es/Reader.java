@@ -138,7 +138,7 @@ public class Reader {
 	    break;
 
 	case ZADD:
-	    commandProcessor.processZsetCommand(args);
+	    commandProcessor.processZaddCommand(args);
 	    break;
 	    
 	case ZREM:

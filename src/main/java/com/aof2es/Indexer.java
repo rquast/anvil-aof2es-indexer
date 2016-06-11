@@ -11,12 +11,12 @@ import com.thoughtworks.xstream.XStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.ParseException;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
@@ -32,6 +32,13 @@ public class Indexer implements ICommandProcessor {
     private static Logger LOG = Logger.getLogger(Indexer.class);
     
     public static enum Type { USERS, SCOPES, ROLES, UNKNOWN }
+    
+    // users:(user_id):roles
+    // users:(user_id):clients
+    // roles:(role_id):scopes
+    // roles:(role_id):users
+    // scopes:(scope_id):roles
+    public static enum Relation { USERS_ROLES, USERS_CLIENTS, ROLES_SCOPES, ROLES_USERS, SCOPES_ROLES, UNKNOWN }
     
     private IPreferences preferences;
     private XStream deserialize;
@@ -205,10 +212,65 @@ public class Indexer implements ICommandProcessor {
     public void processZremCommand(String[] args) {
 	printArgs(args);
     }
+    
+    private void parseRelation(String key, String id, Relation relation) throws IOException {
+	
+	// users:(user_id):roles
+	// users:(user_id):clients
+	// roles:(role_id):scopes
+	// roles:(role_id):users
+	// scopes:(scope_id):roles
+	
+	// TODO: This can probably done more quickly/efficiently with a regex. ^users:*:roles$
+	
+	String[] keyParts = key.split(":");
+	if (keyParts.length != 3) {
+	    // dodgy.. should throw a proper exception rather than IOEX.
+	    throw new IOException("Invalid part count for relation key.");
+	}
+	
+	id = keyParts[1].trim();
+	
+	if (keyParts[0].trim().equalsIgnoreCase("users")) {
+	    if (keyParts[2].trim().equalsIgnoreCase("roles")) {
+		
+	    } else if (keyParts[2].trim().equalsIgnoreCase("clients")) {
+		
+		
+	    } else {
+		relation = Relation.UNKNOWN;
+	    }
+	} else if (keyParts[0].trim().equalsIgnoreCase("roles")) {
+	    
+	} else if (keyParts[0].trim().equalsIgnoreCase("scopes")) {
+	    
+	}
+	
+    }
 
     @Override
-    public void processZsetCommand(String[] args) {
-	printArgs(args);
+    public void processZaddCommand(String[] args) throws IOException {
+	
+	String id = null;
+	Relation type = Relation.UNKNOWN;
+	parseRelation(args[1], id, type);
+
+	switch (type) {
+	case USERS_ROLES:
+	    break;
+	case USERS_CLIENTS:
+	    break;
+	case ROLES_SCOPES:
+	    break;
+	case ROLES_USERS:
+	    break;
+	case SCOPES_ROLES:
+	    break;
+	case UNKNOWN:
+	default:
+	    return;
+	}
+	
     }
 
     @Override
