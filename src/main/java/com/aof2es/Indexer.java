@@ -14,6 +14,8 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.log4j.Logger;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
@@ -21,6 +23,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.index.IndexNotFoundException;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
 
@@ -60,6 +63,18 @@ public class Indexer implements ICommandProcessor {
 
 	this.client = TransportClient.builder().settings(settings).build().addTransportAddress(new InetSocketTransportAddress(
 		InetAddress.getByName(applicationPreferences.getNodeAddress()), applicationPreferences.getNodePort()));
+	
+	if (applicationPreferences.getPos() == 0) {
+	    try {
+		DeleteIndexResponse delete = client.admin().indices().delete(new DeleteIndexRequest("anvil"))
+			.actionGet();
+		if (delete.isAcknowledged()) {
+		    LOG.error("Cleared anvil index.");
+		}
+	    } catch (IndexNotFoundException ex) {
+		LOG.error(ex.getMessage(), ex);
+	    }
+	}
 
     }
 
