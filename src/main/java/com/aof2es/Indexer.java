@@ -225,7 +225,7 @@ public class Indexer implements ICommandProcessor {
 	
 	String[] keyParts = key.split(":");
 	if (keyParts.length != 3) {
-	    // dodgy.. should throw a proper exception rather than IOEX.
+	    // should probably throw a proper exception rather than io ex.
 	    throw new IOException("Invalid part count for relation key.");
 	}
 	
@@ -233,17 +233,26 @@ public class Indexer implements ICommandProcessor {
 	
 	if (keyParts[0].trim().equalsIgnoreCase("users")) {
 	    if (keyParts[2].trim().equalsIgnoreCase("roles")) {
-		
+		relation = Relation.USERS_ROLES;
 	    } else if (keyParts[2].trim().equalsIgnoreCase("clients")) {
-		
-		
+		relation = Relation.USERS_CLIENTS;
 	    } else {
 		relation = Relation.UNKNOWN;
 	    }
 	} else if (keyParts[0].trim().equalsIgnoreCase("roles")) {
-	    
+	    if (keyParts[2].trim().equalsIgnoreCase("scopes")) {
+		relation = Relation.ROLES_SCOPES;
+	    } else if (keyParts[2].trim().equalsIgnoreCase("roles")) {
+		relation = Relation.ROLES_USERS;
+	    } else {
+		relation = Relation.UNKNOWN;
+	    }
 	} else if (keyParts[0].trim().equalsIgnoreCase("scopes")) {
-	    
+	    if (keyParts[2].trim().equalsIgnoreCase("roles")) {
+		relation = Relation.SCOPES_ROLES;
+	    } else {
+		relation = Relation.UNKNOWN;
+	    }
 	}
 	
     }
