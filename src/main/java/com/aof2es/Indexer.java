@@ -11,7 +11,6 @@ import com.thoughtworks.xstream.XStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.text.ParseException;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.log4j.Logger;
@@ -207,10 +206,45 @@ public class Indexer implements ICommandProcessor {
 	}
 	
     }
+    
+    private void softDeleteRelation(Relation relation, String id) throws IOException {
+	UpdateRequest updateRequest = new UpdateRequest();
+	updateRequest.index("anvil");
+	updateRequest.type(relation.toString().toLowerCase());
+	updateRequest.id(id);
+	updateRequest.doc(jsonBuilder().startObject().field("deleted", "true").endObject());
+	try {
+	    client.update(updateRequest).get();
+	} catch (InterruptedException e) {
+	    throw new IOException(e);
+	} catch (ExecutionException e) {
+	    throw new IOException(e);
+	}
+    }
 
     @Override
-    public void processZremCommand(String[] args) {
-	printArgs(args);
+    public void processZremCommand(String[] args) throws IOException {
+	
+	String id = null;
+	Relation type = Relation.UNKNOWN;
+	parseRelation(args[1], id, type);
+	
+	switch (type) {
+	
+	case USERS_ROLES:
+	case USERS_CLIENTS:
+	case ROLES_SCOPES:
+	case ROLES_USERS:
+	case SCOPES_ROLES:
+	    softDeleteRelation(type, id);
+	    break;
+	
+	case UNKNOWN:
+	default:
+	    return;
+	    
+	}
+	
     }
     
     private void parseRelation(String key, String id, Relation relation) throws IOException {
@@ -253,6 +287,11 @@ public class Indexer implements ICommandProcessor {
 	    } else {
 		relation = Relation.UNKNOWN;
 	    }
+	}
+	
+	if (relation == Relation.UNKNOWN) {
+	    LOG.debug(
+		    "Relation not found: " + keyParts[0].trim().toUpperCase() + "_" + keyParts[2].trim().toUpperCase());
 	}
 	
     }
