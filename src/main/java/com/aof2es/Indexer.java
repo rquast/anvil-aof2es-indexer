@@ -43,6 +43,11 @@ public class Indexer implements ICommandProcessor {
     private XStream deserialize;
 
     private Client client;
+    
+    private class ParsedRelation {
+	public Relation relation = Relation.UNKNOWN;
+	public String id = null;
+    }
 
 
     public Indexer() {
@@ -207,11 +212,11 @@ public class Indexer implements ICommandProcessor {
 	
     }
     
-    private void softDeleteRelation(Relation relation, String id) throws IOException {
+    private void softDeleteRelation(ParsedRelation parsedRelation) throws IOException {
 	UpdateRequest updateRequest = new UpdateRequest();
 	updateRequest.index("anvil");
-	updateRequest.type(relation.toString().toLowerCase());
-	updateRequest.id(id);
+	updateRequest.type(parsedRelation.relation.toString().toLowerCase());
+	updateRequest.id(parsedRelation.id);
 	updateRequest.doc(jsonBuilder().startObject().field("deleted", "true").endObject());
 	try {
 	    client.update(updateRequest).get();
@@ -225,18 +230,17 @@ public class Indexer implements ICommandProcessor {
     @Override
     public void processZremCommand(String[] args) throws IOException {
 	
-	String id = null;
-	Relation type = Relation.UNKNOWN;
-	parseRelation(args[1], id, type);
+	ParsedRelation parsedRelation = new ParsedRelation();
+	parseRelation(args[1], parsedRelation);
 	
-	switch (type) {
+	switch (parsedRelation.relation) {
 	
 	case USERS_ROLES:
 	case USERS_CLIENTS:
 	case ROLES_SCOPES:
 	case ROLES_USERS:
 	case SCOPES_ROLES:
-	    softDeleteRelation(type, id);
+	    softDeleteRelation(parsedRelation);
 	    break;
 	
 	case UNKNOWN:
@@ -247,7 +251,7 @@ public class Indexer implements ICommandProcessor {
 	
     }
     
-    private void parseRelation(String key, String id, Relation relation) throws IOException {
+    private void parseRelation(String key, ParsedRelation parsedRelation) throws IOException {
 	
 	// users:(user_id):roles
 	// users:(user_id):clients
@@ -262,33 +266,33 @@ public class Indexer implements ICommandProcessor {
 	    return; // ignore anything that's not 3 parts.
 	}
 	
-	id = keyParts[1].trim();
+	parsedRelation.id = keyParts[1].trim();
 	
 	if (keyParts[0].trim().equalsIgnoreCase("users")) {
 	    if (keyParts[2].trim().equalsIgnoreCase("roles")) {
-		relation = Relation.USERS_ROLES;
+		parsedRelation.relation = Relation.USERS_ROLES;
 	    } else if (keyParts[2].trim().equalsIgnoreCase("clients")) {
-		relation = Relation.USERS_CLIENTS;
+		parsedRelation.relation = Relation.USERS_CLIENTS;
 	    } else {
-		relation = Relation.UNKNOWN;
+		parsedRelation.relation = Relation.UNKNOWN;
 	    }
 	} else if (keyParts[0].trim().equalsIgnoreCase("roles")) {
 	    if (keyParts[2].trim().equalsIgnoreCase("scopes")) {
-		relation = Relation.ROLES_SCOPES;
+		parsedRelation.relation = Relation.ROLES_SCOPES;
 	    } else if (keyParts[2].trim().equalsIgnoreCase("roles")) {
-		relation = Relation.ROLES_USERS;
+		parsedRelation.relation = Relation.ROLES_USERS;
 	    } else {
-		relation = Relation.UNKNOWN;
+		parsedRelation.relation = Relation.UNKNOWN;
 	    }
 	} else if (keyParts[0].trim().equalsIgnoreCase("scopes")) {
 	    if (keyParts[2].trim().equalsIgnoreCase("roles")) {
-		relation = Relation.SCOPES_ROLES;
+		parsedRelation.relation = Relation.SCOPES_ROLES;
 	    } else {
-		relation = Relation.UNKNOWN;
+		parsedRelation.relation = Relation.UNKNOWN;
 	    }
 	}
 	
-	if (relation == Relation.UNKNOWN) {
+	if (parsedRelation.relation == Relation.UNKNOWN) {
 	    LOG.debug(
 		    "Relation not found: " + keyParts[0].trim().toUpperCase() + "_" + keyParts[2].trim().toUpperCase());
 	}
@@ -297,14 +301,13 @@ public class Indexer implements ICommandProcessor {
 
     @Override
     public void processZaddCommand(String[] args) throws IOException {
-	
-	String id = null;
-	Relation type = Relation.UNKNOWN;
-	parseRelation(args[1], id, type);
-	
+
+	ParsedRelation parsedRelation = new ParsedRelation();
+	parseRelation(args[1], parsedRelation);
+
 	XContentBuilder source = jsonBuilder().startObject();
 
-	switch (type) {
+	switch (parsedRelation.relation) {
 	case USERS_ROLES:
 	    source.field("role", args[3]);
 	    break;
@@ -324,10 +327,11 @@ public class Indexer implements ICommandProcessor {
 	default:
 	    return;
 	}
-	
-        source.endObject();
-        client.prepareIndex("anvil", type.toString().toLowerCase(), id).setSource(source).execute().actionGet();
-	
+
+	source.endObject();
+	client.prepareIndex("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id)
+		.setSource(source).execute().actionGet();
+
     }
 
     @Override
