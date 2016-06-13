@@ -309,15 +309,28 @@ public class Indexer implements ICommandProcessor {
 
 	switch (parsedRelation.relation) {
 	case USERS_ROLES:
-	    source.field("role", args[3]);
+	    
+	    // TODO: this is one to many relationship.
+	    // Should update the field to be "roles" and an array (that gets updated).
+	    
+	    // 1. select an existing record
+	    
+	    // if exists, append
+	    
+	    // else, create a new array with the role.
+	    source.array("roles", new String[]{args[3]});
+	    
 	    break;
+	    
 	case USERS_CLIENTS:
 	    source.field("client_id", args[3]);
 	    break;
 	case ROLES_SCOPES:
+	    // TODO: this is one to many.
 	    source.field("scope", args[3]);
 	    break;
 	case ROLES_USERS:
+	    // TODO: this is one to many.
 	    source.field("user_id", args[3]);
 	    break;
 	case SCOPES_ROLES:
