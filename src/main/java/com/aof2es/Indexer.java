@@ -97,12 +97,12 @@ public class Indexer implements ICommandProcessor {
 
     @Override
     public void processDelCommand(String[] args) {
-	printArgs(args);
+	// Do not index session information.
     }
 
     @Override
     public void processPexpireatCommand(String[] args) {
-	printArgs(args);
+	// Do not index session information.
     }
     
     private Type getType(String[] args) {
@@ -302,28 +302,38 @@ public class Indexer implements ICommandProcessor {
 	String id = null;
 	Relation type = Relation.UNKNOWN;
 	parseRelation(args[1], id, type);
+	
+	XContentBuilder source = jsonBuilder().startObject();
 
 	switch (type) {
 	case USERS_ROLES:
+	    source.field("role", args[3]);
 	    break;
 	case USERS_CLIENTS:
+	    source.field("client_id", args[3]);
 	    break;
 	case ROLES_SCOPES:
+	    source.field("scope", args[3]);
 	    break;
 	case ROLES_USERS:
+	    source.field("user_id", args[3]);
 	    break;
 	case SCOPES_ROLES:
+	    source.field("role", args[3]);
 	    break;
 	case UNKNOWN:
 	default:
 	    return;
 	}
 	
+        source.endObject();
+        client.prepareIndex("anvil", type.toString().toLowerCase(), id).setSource(source).execute().actionGet();
+	
     }
 
     @Override
     public void processSetCommand(String[] args) {
-	printArgs(args);
+	// Do not index session information.
     }
 
 }
