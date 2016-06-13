@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
@@ -305,36 +306,25 @@ public class Indexer implements ICommandProcessor {
 	ParsedRelation parsedRelation = new ParsedRelation();
 	parseRelation(args[1], parsedRelation);
 
+	// Performing an upsert here.
+	// https://github.com/elastic/elasticsearch/issues/9839
 	XContentBuilder source = jsonBuilder().startObject();
 
 	switch (parsedRelation.relation) {
 	case USERS_ROLES:
-	    
-	    // TODO: this is one to many relationship.
-	    // Should update the field to be "roles" and an array (that gets updated).
-	    
-	    // 1. select an existing record
-	    
-	    // if exists, append
-	    
-	    // else, create a new array with the role.
 	    source.array("roles", new String[]{args[3]});
-	    
 	    break;
-	    
 	case USERS_CLIENTS:
-	    source.field("client_id", args[3]);
+	    source.field("client_ids", new String[]{args[3]});
 	    break;
 	case ROLES_SCOPES:
-	    // TODO: this is one to many.
-	    source.field("scope", args[3]);
+	    source.field("scopes",new String[]{args[3]});
 	    break;
 	case ROLES_USERS:
-	    // TODO: this is one to many.
-	    source.field("user_id", args[3]);
+	    source.field("user_ids", new String[]{args[3]});
 	    break;
 	case SCOPES_ROLES:
-	    source.field("role", args[3]);
+	    source.field("roles", new String[]{args[3]});
 	    break;
 	case UNKNOWN:
 	default:
@@ -342,8 +332,19 @@ public class Indexer implements ICommandProcessor {
 	}
 
 	source.endObject();
-	client.prepareIndex("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id)
-		.setSource(source).execute().actionGet();
+	
+	IndexRequest indexRequest = new IndexRequest("anvil", parsedRelation.relation.toString().toLowerCase(),
+		parsedRelation.id).source(source);
+	UpdateRequest updateRequest = new UpdateRequest("anvil", parsedRelation.relation.toString().toLowerCase(),
+		parsedRelation.id).doc(source).upsert(indexRequest);
+
+	try {
+	    client.update(updateRequest).get();
+	} catch (InterruptedException e) {
+	    throw new IOException(e);
+	} catch (ExecutionException e) {
+	    throw new IOException(e);
+	}
 
     }
 
