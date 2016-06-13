@@ -75,10 +75,10 @@ public class Indexer implements ICommandProcessor {
 		DeleteIndexResponse delete = client.admin().indices().delete(new DeleteIndexRequest("anvil"))
 			.actionGet();
 		if (delete.isAcknowledged()) {
-		    LOG.error("Cleared anvil index.");
+		    LOG.info("Cleared anvil index.");
 		}
 	    } catch (IndexNotFoundException ex) {
-		LOG.error(ex.getMessage(), ex);
+		LOG.info("Index not found, not clearing.");
 	    }
 	}
 
@@ -259,8 +259,7 @@ public class Indexer implements ICommandProcessor {
 	
 	String[] keyParts = key.split(":");
 	if (keyParts.length != 3) {
-	    // should probably throw a proper exception rather than io ex.
-	    throw new IOException("Invalid part count for relation key.");
+	    return; // ignore anything that's not 3 parts.
 	}
 	
 	id = keyParts[1].trim();
