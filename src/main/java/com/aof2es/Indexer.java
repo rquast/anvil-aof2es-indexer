@@ -23,9 +23,6 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.index.engine.DocumentMissingException;
-import org.elasticsearch.script.Script;
-import org.elasticsearch.script.ScriptService.ScriptType;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
 
@@ -145,7 +142,7 @@ public class Indexer implements ICommandProcessor {
             .field("created", user.getCreated())
             .field("modified", user.getModified());
             source.endObject();
-            client.prepareIndex("anvil", "users", user.get_id()).setSource(source).execute().actionGet();
+            client.prepareIndex("anvil", "users", user.get_id()).setSource(source).get();
             
 	    break;
 	    
@@ -156,7 +153,7 @@ public class Indexer implements ICommandProcessor {
             source.field("created", role.getCreated())
             .field("modified", role.getModified());
             source.endObject();
-            client.prepareIndex("anvil", "roles", role.getName()).setSource(source).execute().actionGet();
+            client.prepareIndex("anvil", "roles", role.getName()).setSource(source).get();
             
 	    break;
 	    
@@ -169,7 +166,7 @@ public class Indexer implements ICommandProcessor {
             .field("created", scope.getCreated())
             .field("modified", scope.getModified());
             source.endObject();
-            client.prepareIndex("anvil", "scopes", scope.getName()).setSource(source).execute().actionGet();
+            client.prepareIndex("anvil", "scopes", scope.getName()).setSource(source).get();
     	
 	    break;
 	
@@ -216,33 +213,6 @@ public class Indexer implements ICommandProcessor {
     }
     
     private void softDeleteRelation(ParsedRelation parsedRelation) throws IOException {
-	
-	// TODO: This should be removing items from the array, and if the array is empty, remove the record.
-	// ctx._source.fieldname.remove('anitemhere')
-	
-	/*
-	client.prepareUpdate("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id)
-		.setScript(new Script("ctx._source." + field + "+=\"" + args[3] + "\"; ctx._source." + field
-			+ " = ctx._source." + field + ".unique();", ScriptType.INLINE, null, null))
-		.get();
-	*/
-	
-	/*
-
-	 How to delete a document conditionally..
-	 
-curl -XPOST 'localhost:9200/test/type1/1/_update' -d '{
-    "script" : {
-        "inline": "ctx._source.tags.contains(tag) ? ctx.op = \"delete\" : ctx.op = \"none\"",
-        "params" : {
-            "tag" : "blue"
-        }
-    }
-}'
-	 
-	 
-	 */
-	
 	UpdateRequest updateRequest = new UpdateRequest();
 	updateRequest.index("anvil");
 	updateRequest.type(parsedRelation.relation.toString().toLowerCase());
@@ -341,7 +311,7 @@ curl -XPOST 'localhost:9200/test/type1/1/_update' -d '{
 	    return;
 	}
 
-	source.startObject(args[3]).field("created", args[2]).endObject();
+	source.startObject(args[3]).field("created", Long.parseLong(args[2])).endObject();
 	source.endObject();
 
         client.prepareIndex("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id).setSource(source).get();

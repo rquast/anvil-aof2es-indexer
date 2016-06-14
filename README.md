@@ -14,13 +14,6 @@ The following changes must be made to elasticsearch.yml:
 cluster.name: anvilConnect
 ```
 
-### Turn on dynamic scripting
-
-```
-script.inline: true
-script.indexed: true
-```
-
 ### Disable multicast discovery if running locally
 
 ```
