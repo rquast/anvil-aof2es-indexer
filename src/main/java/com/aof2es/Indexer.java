@@ -11,6 +11,8 @@ import com.thoughtworks.xstream.XStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.log4j.Logger;
@@ -24,6 +26,9 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.IndexNotFoundException;
+import org.elasticsearch.index.engine.DocumentMissingException;
+import org.elasticsearch.script.Script;
+import org.elasticsearch.script.ScriptService.ScriptType;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
 
@@ -306,44 +311,44 @@ public class Indexer implements ICommandProcessor {
 	ParsedRelation parsedRelation = new ParsedRelation();
 	parseRelation(args[1], parsedRelation);
 
-	// Performing an upsert here.
-	// https://github.com/elastic/elasticsearch/issues/9839
 	XContentBuilder source = jsonBuilder().startObject();
+
+	String field = null;
 
 	switch (parsedRelation.relation) {
 	case USERS_ROLES:
-	    source.array("roles", new String[]{args[3]});
+	    field = "roles";
 	    break;
 	case USERS_CLIENTS:
-	    source.field("client_ids", new String[]{args[3]});
+	    field = "clients";
 	    break;
 	case ROLES_SCOPES:
-	    source.field("scopes",new String[]{args[3]});
+	    field = "scopes";
 	    break;
 	case ROLES_USERS:
-	    source.field("user_ids", new String[]{args[3]});
+	    field = "users";
 	    break;
 	case SCOPES_ROLES:
-	    source.field("roles", new String[]{args[3]});
+	    field = "roles";
 	    break;
 	case UNKNOWN:
 	default:
 	    return;
 	}
 
+	source.field(field, new String[] { args[3] });
 	source.endObject();
-	
-	IndexRequest indexRequest = new IndexRequest("anvil", parsedRelation.relation.toString().toLowerCase(),
-		parsedRelation.id).source(source);
-	UpdateRequest updateRequest = new UpdateRequest("anvil", parsedRelation.relation.toString().toLowerCase(),
-		parsedRelation.id).doc(source).upsert(indexRequest);
 
 	try {
-	    client.update(updateRequest).get();
-	} catch (InterruptedException e) {
-	    throw new IOException(e);
-	} catch (ExecutionException e) {
-	    throw new IOException(e);
+	    client.prepareUpdate("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id)
+		    .setScript(new Script("ctx._source." + field + "+=\"" + args[3] + "\"; ctx._source." + field
+			    + " = ctx._source." + field + ".unique();", ScriptType.INLINE, null, null))
+		    .get();
+	} catch (DocumentMissingException dme) {
+
+	    client.prepareIndex("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id)
+		    .setSource(source).get();
+
 	}
 
     }
