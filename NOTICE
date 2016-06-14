@@ -15,17 +15,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 This project includes:
-  ANTLR 3 Runtime under BSD licence
+  Anvil Connect User Sync under Apache 2.0
+  Apache Commons CLI under Apache License, Version 2.0
   Apache Log4j under The Apache Software License, Version 2.0
-  ASM Commons under BSD
-  ASM Core under BSD
   Commons Daemon under The Apache Software License, Version 2.0
-  elasticsearch under The Apache Software License, Version 2.0
-  ElasticSearch Indexer under Apache 2.0
+  Compress-LZF under Apache License 2.0
+  Elasticsearch SecureSM under The Apache Software License, Version 2.0
+  Elasticsearch: Core under The Apache Software License, Version 2.0
   Guava: Google Core Libraries for Java under The Apache Software License, Version 2.0
-  Hamcrest Core under BSD style
-  JSON.simple under The Apache Software License, Version 2.0
-  JUnit under Common Public License Version 1.0
+  HdrHistogram under Public Domain, per Creative Commons CC0
+  HPPC Collections under The Apache Software License, Version 2.0
+  Jackson-core under The Apache Software License, Version 2.0
+  Jackson-dataformat-CBOR under The Apache Software License, Version 2.0
+  Jackson-dataformat-Smile under The Apache Software License, Version 2.0
+  Jackson-dataformat-YAML under The Apache Software License, Version 2.0
+  Jettison under Apache License, Version 2.0
+  Joda convert under Apache 2
+  Joda-Time under Apache 2
+  JSR166e under CC0 1.0 Universal
   Lucene Common Analyzers under Apache 2
   Lucene Core under Apache 2
   Lucene Grouping under Apache 2
@@ -37,9 +44,14 @@ This project includes:
   Lucene QueryParsers under Apache 2
   Lucene Sandbox under Apache 2
   Lucene Spatial under Apache 2
+  Lucene Spatial 3D under Apache 2
   Lucene Suggest under Apache 2
   MXP1: Xml Pull Parser 3rd Edition (XPP3) under Indiana University Extreme! Lab Software License, vesion 1.1.1 or Public Domain
+  Netty under Apache License, Version 2.0
+  SnakeYAML under Apache License Version 2.0
   Spatial4J under The Apache Software License, Version 2.0
+  StAX API under The Apache Software License, Version 2.0
+  T-Digest under The Apache Software License, Version 2.0
   XML Pull Parsing API under Public Domain
   XStream Core under BSD style
 
