@@ -11,14 +11,11 @@ import com.thoughtworks.xstream.XStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
-import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
@@ -219,6 +216,17 @@ public class Indexer implements ICommandProcessor {
     }
     
     private void softDeleteRelation(ParsedRelation parsedRelation) throws IOException {
+	
+	// TODO: This should be removing items from the array, and if the array is empty, remove the record.
+	// ctx._source.fieldname.remove('anitemhere')
+	
+	/*
+	client.prepareUpdate("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id)
+		.setScript(new Script("ctx._source." + field + "+=\"" + args[3] + "\"; ctx._source." + field
+			+ " = ctx._source." + field + ".unique();", ScriptType.INLINE, null, null))
+		.get();
+	*/
+	
 	UpdateRequest updateRequest = new UpdateRequest();
 	updateRequest.index("anvil");
 	updateRequest.type(parsedRelation.relation.toString().toLowerCase());
