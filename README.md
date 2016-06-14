@@ -19,7 +19,6 @@ cluster.name: anvilConnect
 ```
 script.inline: true
 script.indexed: true
-
 ```
 
 ### Disable multicast discovery if running locally
@@ -27,3 +26,21 @@ script.indexed: true
 ```
 discovery.zen.ping.multicast: false
 ```
+
+## Running
+
+Obtain the latest [jar binary](https://github.com/cavyio/anvil-aof2es-indexer/blob/todoinsertlinkhere), or compile with Maven.
+
+```
+mvn clean package
+```
+
+Run for the first time..
+
+```
+java -jar aof2es-0.0.1-SNAPSHOT.jar
+```
+
+This will create an ~/.aof2es directory with preferences.json and indexer.log files.
+
+If your AOF file is not located in /var/lib/redis/appendonly.aof, edit the preferences file and re-run.
