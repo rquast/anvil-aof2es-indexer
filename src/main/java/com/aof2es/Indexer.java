@@ -227,6 +227,22 @@ public class Indexer implements ICommandProcessor {
 		.get();
 	*/
 	
+	/*
+
+	 How to delete a document conditionally..
+	 
+curl -XPOST 'localhost:9200/test/type1/1/_update' -d '{
+    "script" : {
+        "inline": "ctx._source.tags.contains(tag) ? ctx.op = \"delete\" : ctx.op = \"none\"",
+        "params" : {
+            "tag" : "blue"
+        }
+    }
+}'
+	 
+	 
+	 */
+	
 	UpdateRequest updateRequest = new UpdateRequest();
 	updateRequest.index("anvil");
 	updateRequest.type(parsedRelation.relation.toString().toLowerCase());
