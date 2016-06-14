@@ -283,14 +283,6 @@ curl -XPOST 'localhost:9200/test/type1/1/_update' -d '{
     
     private void parseRelation(String key, ParsedRelation parsedRelation) throws IOException {
 	
-	// users:(user_id):roles
-	// users:(user_id):clients
-	// roles:(role_id):scopes
-	// roles:(role_id):users
-	// scopes:(scope_id):roles
-	
-	// TODO: This can probably done more quickly/efficiently with a regex. ^users:*:roles$
-	
 	String[] keyParts = key.split(":");
 	if (keyParts.length != 3) {
 	    return; // ignore anything that's not 3 parts.
@@ -337,43 +329,22 @@ curl -XPOST 'localhost:9200/test/type1/1/_update' -d '{
 
 	XContentBuilder source = jsonBuilder().startObject();
 
-	String field = null;
-
 	switch (parsedRelation.relation) {
 	case USERS_ROLES:
-	    field = "roles";
-	    break;
 	case USERS_CLIENTS:
-	    field = "clients";
-	    break;
 	case ROLES_SCOPES:
-	    field = "scopes";
-	    break;
 	case ROLES_USERS:
-	    field = "users";
-	    break;
 	case SCOPES_ROLES:
-	    field = "roles";
 	    break;
 	case UNKNOWN:
 	default:
 	    return;
 	}
 
-	source.field(field, new String[] { args[3] });
+	source.startObject(args[3]).field("created", args[2]).endObject();
 	source.endObject();
 
-	try {
-	    client.prepareUpdate("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id)
-		    .setScript(new Script("ctx._source." + field + "+=\"" + args[3] + "\"; ctx._source." + field
-			    + " = ctx._source." + field + ".unique();", ScriptType.INLINE, null, null))
-		    .get();
-	} catch (DocumentMissingException dme) {
-
-	    client.prepareIndex("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id)
-		    .setSource(source).get();
-
-	}
+        client.prepareIndex("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id).setSource(source).get();
 
     }
 
