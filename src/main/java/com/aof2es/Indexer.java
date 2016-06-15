@@ -115,6 +115,12 @@ public class Indexer implements ICommandProcessor {
 	return type;
 	
     }
+    
+    private void addField(XContentBuilder source, String key, Object value) throws IOException {
+	if (value != null) {
+	    source.field(key, value);
+	}
+    }
 
     @Override
     public void processHsetCommand(String[] args) throws IOException {
@@ -131,13 +137,26 @@ public class Indexer implements ICommandProcessor {
 	    User user = (User) deserialize.fromXML("{\"user\": " + args[3] + "}");
 	    id = user.get_id();
 	    
-            source.field("email", user.getEmail())
-            .field("name", user.getName())
-            .field("givenName", user.getGivenName())
-            .field("middleName", user.getMiddleName())
-            .field("familyName", user.getFamilyName())
-            .field("created", user.getCreated())
-            .field("modified", user.getModified());
+	    addField(source, "email", user.getEmail());
+            addField(source, "name", user.getName());
+            addField(source, "givenName", user.getGivenName());
+            addField(source, "middleName", user.getMiddleName());
+            addField(source, "familyName", user.getFamilyName());
+            addField(source, "nickname", user.getNickname());
+            addField(source, "preferredUsername", user.getPreferredUsername());
+            addField(source, "profile", user.getProfile());
+            addField(source, "picture", user.getPicture());
+            addField(source, "website", user.getWebsite());
+            addField(source, "email", user.getEmail());
+            addField(source, "emailVerified", user.isEmailVerified());
+            addField(source, "gender", user.getGender());
+            addField(source, "birthdate", user.getBirthdate());
+            addField(source, "zoneinfo", user.getZoneinfo());
+            addField(source, "locale", user.getLocale());
+            addField(source, "phoneNumber", user.getPhoneNumber());
+            addField(source, "phoneNumberVerified", user.isPhoneNumberVerified());
+            addField(source, "created", user.getCreated());
+            addField(source, "modified", user.getModified());
 
 	    break;
 	    
@@ -146,8 +165,8 @@ public class Indexer implements ICommandProcessor {
 	    Role role = (Role) deserialize.fromXML("{\"role\": " + args[3] + "}");
 	    id = role.getName();
 	    
-            source.field("created", role.getCreated())
-            .field("modified", role.getModified());
+	    addField(source, "created", role.getCreated());
+	    addField(source, "modified", role.getModified());
 
 	    break;
 	    
@@ -156,10 +175,10 @@ public class Indexer implements ICommandProcessor {
 	    Scope scope = (Scope) deserialize.fromXML("{\"scope\": " + args[3] + "}");
 	    id = scope.getName();
 	    
-            source.field("restricted", scope.isRestricted() ? "true": "false")
-            .field("description", scope.getDescription())
-            .field("created", scope.getCreated())
-            .field("modified", scope.getModified());
+	    addField(source, "restricted", scope.isRestricted());
+	    addField(source, "description", scope.getDescription());
+	    addField(source, "created", scope.getCreated());
+	    addField(source, "modified", scope.getModified());
     	
 	    break;
 	
@@ -179,7 +198,7 @@ public class Indexer implements ICommandProcessor {
 	updateRequest.index("anvil");
 	updateRequest.type(args[1]);
 	updateRequest.id(args[2]);
-	updateRequest.doc(jsonBuilder().startObject().field("deleted", "true").endObject());
+	updateRequest.doc(jsonBuilder().startObject().field("deleted", true).endObject());
 	try {
 	    client.update(updateRequest).get();
 	} catch (InterruptedException e) {
@@ -213,7 +232,7 @@ public class Indexer implements ICommandProcessor {
 	updateRequest.index("anvil");
 	updateRequest.type(parsedRelation.relation.toString().toLowerCase());
 	updateRequest.id(parsedRelation.id);
-	updateRequest.doc(jsonBuilder().startObject().field("deleted", "true").endObject());
+	updateRequest.doc(jsonBuilder().startObject().field("deleted", true).endObject());
 	try {
 	    client.update(updateRequest).get();
 	} catch (InterruptedException e) {
@@ -310,7 +329,8 @@ public class Indexer implements ICommandProcessor {
 	source.startObject(args[3]).field("created", Long.parseLong(args[2])).endObject();
 	source.endObject();
 
-        client.prepareIndex("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id).setSource(source).get();
+	client.prepareIndex("anvil", parsedRelation.relation.toString().toLowerCase(), parsedRelation.id)
+		.setSource(source).get();
 
     }
 
