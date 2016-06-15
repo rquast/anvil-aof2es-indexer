@@ -37,3 +37,9 @@ java -jar aof2es-0.0.1-SNAPSHOT.jar
 This will create an ~/.aof2es directory with preferences.json and indexer.log files.
 
 If your AOF file is not located in /var/lib/redis/appendonly.aof, edit the preferences file and re-run.
+
+## Launching AOF2ES as a Daemon/Service
+
+The project has a Commons Daemon implementation class. This means you can use either [jsvc (unix)](https://commons.apache.org/proper/commons-daemon/jsvc.html) or [procrun (windows)](http://yensee.com/web/creating-windows-service-using-apache-commons-daemon-and-calling-from-spring-schedular/) to launch the service on startup.
+
+To do this, follow the instructions for using commons daemon and specify the class "com.aof2es.DaemonImpl".

@@ -139,6 +139,10 @@ public class Indexer implements ICommandProcessor {
 	    User user = (User) deserialize.fromXML("{\"user\": " + args[3] + "}");
 	    
             source.field("email", user.getEmail())
+            .field("name", user.getName())
+            .field("givenName", user.getGivenName())
+            .field("middleName", user.getMiddleName())
+            .field("familyName", user.getFamilyName())
             .field("created", user.getCreated())
             .field("modified", user.getModified());
             source.endObject();

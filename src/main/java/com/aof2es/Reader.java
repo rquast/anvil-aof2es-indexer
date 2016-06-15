@@ -96,8 +96,9 @@ public class Reader {
 	return args;
     }
 
+    // NOTE: This may be problematic if the JSON gets encoded in UTF-16/32 BE/LE
     private String readString() throws IOException {
-	return new String(readBytes(), "ISO8859-1");
+	return new String(readBytes(), "UTF-8");
     }
 
     public static void printArgs(String[] args) {
