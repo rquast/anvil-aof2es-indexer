@@ -89,17 +89,6 @@ public class Indexer implements ICommandProcessor {
 
     }
 
-    public static void printArgs(String[] args) {
-
-	StringBuffer sb = new StringBuffer();
-	sb.append("Command: " + args[0]);
-	for (int i = 1; i < args.length; i++) {
-	    sb.append(" arg" + i + ": " + args[i]);
-	}
-	System.out.println(sb.toString());
-
-    }
-
     @Override
     public void processDelCommand(String[] args) {
 	// Do not index session information.
@@ -132,11 +121,15 @@ public class Indexer implements ICommandProcessor {
 	
 	XContentBuilder source = jsonBuilder().startObject();
 
-	switch (getType(args)) {
+	Type type = getType(args);
+	String id = null;
+	
+	switch (type) {
 	
 	case USERS:
 
 	    User user = (User) deserialize.fromXML("{\"user\": " + args[3] + "}");
+	    id = user.get_id();
 	    
             source.field("email", user.getEmail())
             .field("name", user.getName())
@@ -145,32 +138,28 @@ public class Indexer implements ICommandProcessor {
             .field("familyName", user.getFamilyName())
             .field("created", user.getCreated())
             .field("modified", user.getModified());
-            source.endObject();
-            client.prepareIndex("anvil", "users", user.get_id()).setSource(source).get();
-            
+
 	    break;
 	    
 	case ROLES:
 	    
 	    Role role = (Role) deserialize.fromXML("{\"role\": " + args[3] + "}");
+	    id = role.getName();
 	    
             source.field("created", role.getCreated())
             .field("modified", role.getModified());
-            source.endObject();
-            client.prepareIndex("anvil", "roles", role.getName()).setSource(source).get();
-            
+
 	    break;
 	    
 	case SCOPES:
 	    
 	    Scope scope = (Scope) deserialize.fromXML("{\"scope\": " + args[3] + "}");
+	    id = scope.getName();
 	    
             source.field("restricted", scope.isRestricted() ? "true": "false")
             .field("description", scope.getDescription())
             .field("created", scope.getCreated())
             .field("modified", scope.getModified());
-            source.endObject();
-            client.prepareIndex("anvil", "scopes", scope.getName()).setSource(source).get();
     	
 	    break;
 	
@@ -179,6 +168,9 @@ public class Indexer implements ICommandProcessor {
 	    return;
 	    
 	}
+	
+	source.endObject();
+	client.prepareIndex("anvil", type.toString().toLowerCase(), id).setSource(source).get();
 	
     }
     

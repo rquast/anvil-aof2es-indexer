@@ -100,17 +100,6 @@ public class Reader {
     private String readString() throws IOException {
 	return new String(readBytes(), "UTF-8");
     }
-
-    public static void printArgs(String[] args) {
-
-	StringBuffer sb = new StringBuffer();
-	sb.append("Command: " + args[0]);
-	for (int i = 1; i < args.length; i++) {
-	    sb.append(" arg" + i + ": " + args[i]);
-	}
-	System.out.println(sb.toString());
-
-    }
     
     private void processCommand(String[] args) throws IOException {
 	
