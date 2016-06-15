@@ -22,7 +22,7 @@ discovery.zen.ping.multicast: false
 
 ## Running
 
-Obtain the latest [jar binary](https://github.com/cavyio/anvil-aof2es-indexer/blob/todoinsertlinkhere), or compile with Maven.
+Obtain the latest [jar binary](https://github.com/cavyio/anvil-aof2es-indexer/releases/latest), or compile with Maven.
 
 ```
 mvn clean package
@@ -31,7 +31,7 @@ mvn clean package
 Run for the first time..
 
 ```
-java -jar aof2es-0.0.1-SNAPSHOT.jar
+java -jar aof2es-[RELEASE].jar
 ```
 
 This will create an ~/.aof2es directory with preferences.json and indexer.log files.
